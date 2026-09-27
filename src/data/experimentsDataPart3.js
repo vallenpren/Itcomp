@@ -42,6 +42,9 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
           badge: 'EXTINCTION CYCLE / KEPUNAHAN GANDA',
           title: 'Predator Memangsa Seluruh Hama Sampai Habis',
           description: 'Predator yang terlalu banyak memusnahkan mangsa secara total, lalu disusuli kepunahan predator itu sendiri karena kelaparan!',
+          bagianA: 'Populasi predator yang terlalu dominan mengonsumsi seluruh mangsa hingga habis. Ketika ketersediaan mangsa jatuh ke nol, populasi predator mengalami krisis pangan masif dan punah secara massal.',
+          bagianB: 'Menurut Persamaan Lotka-Volterra dx/dt = αx - βxy, ketika populasi predator y sangat besar, laju kematian mangsa βxy melampaui laju perkembangbiakan αx sehingga x mendadak menyusut ke titik 0.',
+          bagianC: 'Kurangi Populasi Predator ke batas aman (20 - 40 ekor) dan tingkatkan Ketersediaan Pangan Rumput agar daya dukung lingkungan (Carrying Capacity K) tetap terjaga!',
           metrics: { Ratio: ratio.toFixed(2), Ecosystem: 'Collapsed', PredatorState: 'Starving' }
         };
       } else if (predatorPop < 10 && preyPop > 1200) {
@@ -50,6 +53,9 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
           badge: 'LEDAKAN HAMA PERTANIAN',
           title: 'Hilangnya Predator Alami Memicu Wabah Hama',
           description: 'Populasi mangsa melampaui daya dukung lingkungan (carrying capacity), menghancurkan seluruh vegetasi pertanian.',
+          bagianA: 'Ekosistem kehilangan pemangsa alami. Populasi mangsa/tikus melonjak tanpa kendali, mengosongkan seluruh cadangan makanan vegetasi pertanian.',
+          bagianB: 'Hilangnya faktor pembatas dy/dt = δxy - γy menyebabkan pertumbuhan mangsa menjadi eksponensial tak terbatas (J-curve), melampaui ambang batas kestabilan ekologi.',
+          bagianC: 'Lepaskan Predator Alami di kisaran 30 ekor untuk mengembalikan mekanisme kontrol biologis (Biological Pest Control) secara alami!',
           metrics: { Ratio: ratio.toFixed(2), Ecosystem: 'Outbreak', PredatorState: 'Extinct' }
         };
       } else {
@@ -58,6 +64,9 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
           badge: 'FLUKTUASI EKOLOGI SEIMBANG',
           title: 'Siklus Rantai Makanan Lotka-Volterra Harmonism',
           description: 'Grafik populasi mangsa dan pemangsa membentuk gelombang sinus konstan yang menjaga keseimbangan hayati.',
+          bagianA: 'Rantai makanan beroperasi dalam siklus alami yang harmonis. Puncak populasi mangsa akan disusul kenaikan predator, yang kemudian menekan kembali populasi mangsa secara teratur.',
+          bagianB: 'Model Lotka-Volterra berada pada lintasan siklus tertutup (Phase Orbit) di mana turunan dx/dt dan dy/dt berada pada titik kesetimbangan dinamis.',
+          bagianC: 'Ekosistem padang rumput berada dalam kondisi sangat sehat. Anda dapat menguji perubahan daya dukung pangan untuk mengamati respon siklus populasi!',
           metrics: { Ratio: ratio.toFixed(2), Ecosystem: 'Balanced', PredatorState: 'Stable' }
         };
       }
@@ -109,6 +118,9 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
           badge: 'IMPULS TERBLOKIR / ANESTESI',
           title: 'Depolarisasi Membran Gagal Terjadi',
           description: 'Konsentrasi ion Natrium luar terlalu rendah. Voltase tidak dapat menembus ambang batas (threshold -55mV) sehingga sinyal saraf terputus.',
+          bagianA: 'Konsentrasi ion Na+ ekstraseluler tidak mencukupi untuk memicu masuknya muatan positif ke dalam akson. Impuls sinyal sakit/gerak terhenti total sebelum sampai ke otak.',
+          bagianB: 'Persamaan Nernst/Goldman membuktikan tanpa gradien konsentrasi [Na+]_o yang cukup, voltase membran gagal melewati ambang depolarisasi -55 mV untuk membuka Voltage-Gated Sodium Channels.',
+          bagianC: 'Naiikkan Konsentrasi Ion Na+ di atas 80 mM untuk mengembalikan fungsi penghantaran sinyal listrik saraf secara normal!',
           metrics: { Speed: '0 m/s', PeakVolt: '-70 mV', Conduction: 'Blocked' }
         };
       } else if (myelinSheath < 3) {
@@ -117,6 +129,9 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
           badge: 'SANGAT LAMBAT / DE-MYELINATED',
           title: 'Kebocoran Listrik Saraf Tanpa Mielin',
           description: 'Lapisan isolator mielin terdegradasi. Impuls tidak bisa melompat (konduksi saltatori) di Nodus Ranvier.',
+          bagianA: 'Mielin yang tipis/rusak menyebabkan muatan listrik bocor keluar menembus membran akson. Kecepatan hantar saraf drop dari 120 m/s menjadi di bawah 10 m/s (gejala Multiple Sclerosis).',
+          bagianB: 'Tanpa isolasi mielin, hambatan membran Rm turun drastis sehingga konstanta jarak λ menyusut. Sinyal harus merambat titik-demi-titik tanpa loncatan saltatori.',
+          bagianC: 'Tingkatkan Ketebalan Lapisan Mielin di atas 6 μm untuk mengaktifkan loncatan saltatori antar Nodus Ranvier!',
           metrics: { Speed: `${speed} m/s`, PeakVolt: `${peakVoltage} mV`, Conduction: 'Slow' }
         };
       } else {
@@ -125,6 +140,9 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
           badge: 'TRANSMISI IMPULS PRESISI',
           title: 'Konduksi Saltatori Super Cepat',
           description: 'Pompa Na+/K+ ATP-ase dan lapisan mielin bekerja sempurna mengirimkan impuls saraf secepat 120 meter/detik!',
+          bagianA: 'Saraf menghantarkan sinyal refleks dengan kecepatan luar biasa tinggi. Arus depolarisasi melompat efisien dari satu Nodus Ranvier ke Nodus Ranvier berikutnya.',
+          bagianB: 'Gradien ionik Na+/K+ dan resistansi isolasi mielin tinggi memaksa impuls meloncat (Saltatory Conduction) dengan efisiensi energi ATP maksimum.',
+          bagianC: 'Transmisi impuls saraf berada pada kondisi kesehatan puncak. Anda bisa menguji efek bius lokal dengan menurunkan konsentrasi ion Natrium.',
           metrics: { Speed: `${speed} m/s`, PeakVolt: `${peakVoltage} mV`, Conduction: 'Saltatory Fast' }
         };
       }
@@ -178,6 +196,9 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
           badge: 'RISIKO FENOTIPE HOMOZIGOT RESESIF TINGGI',
           title: 'Frekuensi Alel Pembawa Sifat Penyakit Tinggi',
           description: `Tanpa seleksi atau pengeditan genetik CRISPR, ${q2}% keturunan generasi F${generations} berisiko mengekspresikan penyakit resesif.`,
+          bagianA: 'Frekuensi alel mutasi resesif q di dalam populasi terlalu dominan. Persentase keturunan bergenotipe homozigot resesif (aa) membengkak, memicu manifestasi penyakit genetik.',
+          bagianB: 'Sesuai Hukum Hardy-Weinberg p² + 2pq + q² = 1, saat frekuensi p rendah (p < 0.4), proporsi q² = (1-p)² melonjak secara kuadratik melebihi ambang batas toleransi populasi.',
+          bagianC: 'Gunakan terapi rekayasa genetik CRISPR Cas-9 untuk memperbaiki alel resesif atau tingkatkan frekuensi alel dominan p di atas 0.7!',
           metrics: { AA: `${p2}%`, Aa: `${pq2}%`, aa: `${q2}%` }
         };
       } else {
@@ -186,6 +207,9 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
           badge: 'VARIASI GENETIK SEHAT OPTIMAL',
           title: 'Distribusi Genotipe Terkontrol Sempurna',
           description: `Kombinasi alel dominan dan perbaikan CRISPR mempertahankan ${p2}% dominan sehat dengan persentase fenotipe unggul.`,
+          bagianA: 'Populasi memiliki ketahanan genetik yang sangat baik. Sebagian besar individu mengekspresikan fenotipe unggul dominan, sedangkan alel resesif tetap berada pada ambang aman.',
+          bagianB: 'Hukum Segregasi Bebas Mendel dan kesetimbangan alel p & q terdistribusi secara seimbang sesuai ekspansi polinomial kuadrat (p + q)²',
+          bagianC: 'Kombinasi genetik berada pada titik paling ideal! Anda dapat mensimulasikan persilangan generasi berikutnya F1 - F5.',
           metrics: { AA: `${p2}%`, Aa: `${pq2}%`, aa: `${q2}%` }
         };
       }
@@ -240,6 +264,9 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
           badge: 'PEMBELI KABUR / ELASTIS EKSTREM',
           title: 'Harga Terlalu Mahal Dibanding Kompetitor',
           description: 'Konsentrasi pembeli beralih total ke barang substitusi. Total Revenue anjlok drastis!',
+          bagianA: 'Harga produk dipatok terlalu tinggi dibanding produk pesaing. Konsumen secara masif beralih ke toko sebelah yang menawarkan fungsi serupa dengan harga jauh lebih rasional.',
+          bagianB: 'Nilai Elastisitas Harga Permintaan PED |Ep| > 1 menunjukkan barang bersifat elastis. Kenaikan harga %ΔP memicu penurunan jumlah unit yang diminta %ΔQ dalam persentase yang jauh lebih besar.',
+          bagianC: 'Turunkan Harga Jual ke kisaran Rp 450.000 - Rp 550.000 untuk menemukan titik keseimbangan optimum yang memaksimalkan Total Revenue (P x Q)!',
           metrics: { PED: ped.toFixed(2), Quantity: `${quantity} pcs`, Revenue: `Rp ${(totalRevenue / 1000000).toFixed(1)}Jt` }
         };
       } else if (priceRp < competitorPrice * 0.4) {
@@ -248,6 +275,9 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
           badge: 'MARGIN UNTUNG NIPIS',
           title: 'Perang Harga Terlalu Murah',
           description: 'Barang laku keras namun Total Revenue tidak menutup biaya operasional dan iklan.',
+          bagianA: 'Toko mengalami kelangkaan stok barang (shortage) karena harga terlalu murah. Walau kuantitas terjual sangat tinggi, margin profit per unit sangat tipis.',
+          bagianB: 'Penetapan harga jauh di bawah harga ekuilibrium pasar menyebabkan kerugian potensi pendapatan (Producer Surplus Loss) akibat marjin yang tak mampu menutup Fixed Cost.',
+          bagianC: 'Naikkan harga secara bertahap menuju harga pesaing untuk mengamankan margin keuntungan yang sehat!',
           metrics: { PED: ped.toFixed(2), Quantity: `${quantity} pcs`, Revenue: `Rp ${(totalRevenue / 1000000).toFixed(1)}Jt` }
         };
       } else {
@@ -256,6 +286,9 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
           badge: 'TOTAL REVENUE MAKSIMAL',
           title: 'Titik Ekuilibrium Harga Optimal',
           description: 'Poin harga pas pada kurva elastisitas unitari memaksimalkan omset keuntungan e-commerce.',
+          bagianA: 'Produk berada pada titik manis pendapatan tertinggi. Kenaikan marjin keuntungan per unit seimbang sempurna dengan jumlah permintaan keranjang belanja pembeli.',
+          bagianB: 'Elastisitas berada pada titik Unitari (Ep = -1), di mana turunan pertama fungsi Total Revenue d(TR)/dP = 0 mencapai titik puncak matematis (Revenue Maximization).',
+          bagianC: 'Strategi harga toko online Anda sangat presisi! Uji harga toko pesaing untuk mengamati pergeseran kurva permintaan.',
           metrics: { PED: ped.toFixed(2), Quantity: `${quantity} pcs`, Revenue: `Rp ${(totalRevenue / 1000000).toFixed(1)}Jt` }
         };
       }
@@ -308,6 +341,9 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
           badge: 'HIPERINFLASI / DAYA BELI COLLAPSE',
           title: 'Uang Beredar Melimpah Ruah',
           description: 'Suku bunga terlalu rendah dan belanja fiskal tinggi menyebabkan harga kebutuhan pokok melambung gila-gilaan!',
+          bagianA: 'Jumlah uang beredar melimpah di pasar melebihi pertumbuhan barang riil. Konsumen memegang banyak uang tetapi daya beli merosot tajam karena harga sembako melambung.',
+          bagianB: 'Menurut Persamaan Kuantitas Uang Irving Fisher MV = PY, jika M (Uang Beredar) naik drastis tanpa diimbangi kenaikan Y (Output Riil), tingkat harga P akan terdorong ke zona hiperinflasi.',
+          bagianC: 'Naikkan Suku Bunga Acuan BI-Rate ke kisaran 6% - 8% untuk menyedot kelebihan uang beredar kembali ke perbankan!',
           metrics: { Inflation: `${inflation}%`, Unemployment: `${unemployment}%`, Growth: 'Stagflation' }
         };
       } else if (biRate > 11) {
@@ -316,6 +352,9 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
           badge: 'RESESI / KREDIT MACET',
           title: 'Suku Bunga Terlalu Mencekik Pengusaha',
           description: 'Dunia usaha berhenti ekspansi karena bunga pinjaman bank mahal, memicu pengangguran naik.',
+          bagianA: 'Kebijakan uang sangat ketat (Tight Money Policy). Bunga pinjaman yang terlampau tinggi menyebabkan pengusaha enggan mengambil kredit usaha, memicu gelombang PHK.',
+          bagianB: 'Mengacu pada Kurva Phillips jangka pendek, penekanan inflasi ekstrem lewat peningkatan suku bunga i akan mengorbankan tingkat kesempatan kerja (Unemployment melonjak).',
+          bagianC: 'Turunkan BI-Rate ke level moderat (5.5% - 7%) agar bisnis dapat kembali melakukan investasi ekspansi!',
           metrics: { Inflation: `${inflation}%`, Unemployment: `${unemployment}%`, Growth: 'Slowdown' }
         };
       } else {
@@ -324,6 +363,9 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
           badge: 'STABILITAS MONETER PRESISI',
           title: 'Keseimbangan Kurva Phillips & Fisher',
           description: 'Inflasi terkendali di kisaran target 2-3% dengan laju pertumbuhan ekonomi yang sehat.',
+          bagianA: 'Neraca moneter berada pada titik kestabilan ideal. Harga kebutuhan pokok terjangkau, daya beli terjaga, dan penciptaan lapangan kerja terus bertumbuh.',
+          bagianB: 'Harmonisasi suku bunga acuan BI-Rate dan Giro Wajib Minimum menjaga tingkat inflasi inti πe pada koridor target Bank Indonesia.',
+          bagianC: 'Kondisi ekonomi makro sangat stabil! Uji kejutan fiskal dengan menaikkan Belanja Pemerintah.',
           metrics: { Inflation: `${inflation}%`, Unemployment: `${unemployment}%`, Growth: 'Healthy +5.2%' }
         };
       }
@@ -377,6 +419,9 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
           badge: 'ALOKASI HARUS 100%',
           title: 'Total Alokasi Aset Tidak Genap 100%',
           description: `Total persentase saat ini adalah ${totalAlloc}%. Sesuaikan slider agar jumlah saham + obligasi = 100%.`,
+          bagianA: 'Portofolio investasi tidak valid karena alokasi dana melebihi atau kurang dari 100% dari total modal modal kerja.',
+          bagianB: 'Bobot alokasi w_A + w_B harus selalu bernilai 1.0 agar penghitungan return E(Rp) dan varians σp² valid.',
+          bagianC: 'Sesuaikan slider alokasi saham dan obligasi hingga totalnya tepat 100%!',
           metrics: { Return: `${expectedReturn}%`, Risk: `${portfolioRisk}%`, Sharpe: sharpeRatio }
         };
       } else if (stocksWeight > 90 && marketVolatility > 40) {
@@ -385,6 +430,9 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
           badge: 'RISIKO KEJATUHAN MODAL EXTREME',
           title: 'Portofolio Terlalu Rentan Badai Pasar',
           description: 'Tanpa diversifikasi obligasi, kejatuhan pasar saham akan memangkas modal portofolio hingga 50%!',
+          bagianA: 'Portofolio mengalami kerugian besar saat krisis pasar tiba karena 100% dana terkonsentrasi di aset saham berisiko tinggi tanpa perisai obligasi.',
+          bagianB: 'Tanpa kovarians negatif σAB dari aset berisiko rendah, varians portofolio σp² melonjak tinggi mengikuti volatilitas pasar VIX.',
+          bagianC: 'Tambahkan alokasi Obligasi/Surat Utang Negara minimal 30% - 40% untuk meredam potensi kejatuhan nilai portofolio!',
           metrics: { Return: `${expectedReturn}%`, Risk: `${portfolioRisk}%`, Sharpe: sharpeRatio }
         };
       } else {
@@ -393,6 +441,9 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
           badge: 'EFFICIENT FRONTIER OPTIMAL',
           title: 'Rasio Sharpe Tinggi (Risk-Adjusted Return)',
           description: 'Kombinasi aset meminimalkan varians kovarians sesuai kurva efisien Harry Markowitz.',
+          bagianA: 'Portofolio memiliki daya tahan tinggi terhadap guncangan pasar. Imbal hasil optimal dengan tingkat risiko yang sangat terukur.',
+          bagianB: 'Alokasi berada pada Efficient Frontier Harry Markowitz dengan Sharpe Ratio maksimal (Risk-Adjusted Return tertinggi).',
+          bagianC: 'Struktur portofolio investasi Anda sangat ideal! Tekan tombol Uji Kejutan Pasar untuk menguji ketahanan finansial.',
           metrics: { Return: `${expectedReturn}%`, Risk: `${portfolioRisk}%`, Sharpe: sharpeRatio }
         };
       }
@@ -445,6 +496,9 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
           badge: 'BOBOT KEMACETAN TINGGI',
           title: 'Algoritma Melakukan Rerouting Jalur Alternatif',
           description: 'Bobot edge graf melambung tinggi. Dijkstra memilih rute melingkar yang lebih panjang tetapi bebas macet.',
+          bagianA: 'Lalu lintas pada ruas jalan utama mengalami kemacetan parah. Algoritma navigasi secara otomatis menghitung ulang bobot edge graf d(u,v) dan mengarahkan kurrier ke rute alternatif yang lebih lancar.',
+          bagianB: 'Algoritma Graf Dijkstra d(v) = min(d(u) + w(u,v)) mengevaluasi ulang matriks tetangga ketika nilai bobot hambatan w(u,v) melonjak akibat kemacetan.',
+          bagianC: 'Kurangi Tingkat Kemacetan Jalan atau aktifkan Rintangan Jalan Ditutup untuk menguji respon algoritma rerouting real-time!',
           metrics: { TravelTime: `${totalTimeMin} Mnt`, NodesEvaluated: evaluatedNodes, FuelCost: `Rp ${fuelCost}K` }
         };
       } else {
@@ -453,6 +507,9 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
           badge: 'JALUR SHORTEST PATH DITEMUKAN',
           title: 'Evaluasi Node Graf Himpunan Terbuka Sempurna',
           description: 'Algoritma Dijkstra/A* berhasil menemukan rute dengan nilai f(n) paling minimal untuk efisiensi BBM kurir!',
+          bagianA: 'Sistem navigasi berhasil menemukan rute efisien dengan waktu tempuh paling minimum dan konsumsi bahan bakar yang sangat terukur.',
+          bagianB: 'Algoritma pencarian rute terpendek Dijkstra & A* mengabaikan cabang simpul yang memiliki akumulasi bobot f(n) tinggi, menghasilkan lintasan paling efisien.',
+          bagianC: 'Navigasi rute pengiriman berada pada jalur paling optimal! Anda dapat menguji tingkat kemacetan untuk mengamati rerouting instan.',
           metrics: { TravelTime: `${totalTimeMin} Mnt`, NodesEvaluated: evaluatedNodes, FuelCost: `Rp ${fuelCost}K` }
         };
       }
@@ -504,6 +561,9 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
           badge: 'MUDAH DI-HACK / KERENTANAN TINGGI',
           title: 'Modulus n Terlalu Kecil (Faktorisasi Super Cepat)',
           description: 'Komputer hacker dapat memfaktorkan n menjadi p dan q dalam 0.001 detik dan membobol kunci privat!',
+          bagianA: 'Ukuran kunci enkripsi terlalu kecil. Penetas dapat dengan mudah memfaktorkan perkalian n menjadi p dan q dalam hitungan detik untuk mendekripsi data rahasia.',
+          bagianB: 'Kerentanan matematis faktorisasi prima sederhana n = p · q memungkinkan hacker menghitung nilai φ(n) dan mencari invers eksponen d = e^-1 mod φ(n) dalam waktu singkat.',
+          bagianC: 'Tingkatkan ukuran bilangan prima p dan q untuk memperbesar modulus n hingga level keamanan enkripsi 2048-bit!',
           metrics: { ModulusN: n, PhiN: phi, SecurityBit: 'Weak (12-bit)' }
         };
       } else {
@@ -512,6 +572,9 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
           badge: 'ENKRIPSI MILITER RASA AMAN',
           title: 'Modular Arithmetic Masking Sempurna',
           description: 'Pesan asli diacak menjadi Ciphertext rumit c = m^e mod n yang tidak bisa didekripsi tanpa d privat.',
+          bagianA: 'Data transaksi perbankan dan PIN terenkripsi dengan sangat aman. Pihak ketiga di saluran internet tidak mampu membaca pesan tanpa kunci privat rahasia.',
+          bagianB: 'Keamanan RSA bergantung pada kesukaran komputasi memfaktorkan n menjadi perkalian dua bilangan prima raksasa (Asymmetric Prime Factorization Problem).',
+          bagianC: 'Kunci enkripsi publik & privat berada dalam tingkat keamanan sangat tinggi! Uji simulasi peretasan data.',
           metrics: { ModulusN: n, PhiN: phi, SecurityBit: 'Strong RSA' }
         };
       }
@@ -564,6 +627,9 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
           badge: 'OVERSHOOTING / LOSS DIVERGEN',
           title: 'Learning Rate Terlalu Tinggi',
           description: 'Langkah gradient descent meloncat melompati titik minimum lokal loss function, menyebabkan model AI tidak pernah konvergen!',
+          bagianA: 'Pelatihan model AI gagal karena laju pembelajar α terlampau tinggi. Pergeseran bobot melonjak ekstrem melompati nilai minimum fungsi kerugian (Loss Function).',
+          bagianB: 'Menurut rumus Gradient Descent w = w - α(∂L/∂w), nilai α yang terlalu besar memicu loncatan overshooting yang membuat gradien membesar (Exploding Gradient).',
+          bagianC: 'Turunkan nilai Learning Rate ke kisaran 0.01 - 0.08 untuk memungkinkan konvergensi yang mulus!',
           metrics: { Accuracy: `${accuracy}%`, Loss: loss.toFixed(3), Convergence: 'Diverged' }
         };
       } else if (accuracy < 60) {
@@ -572,6 +638,9 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
           badge: 'UNDERFITTING / DATA NOISY',
           title: 'Model Kurang Lapisan & Terlalu Banyak Noise',
           description: 'Garis keputusan (decision boundary) AI terlalu sederhana untuk memisahkan pola data yang kompleks.',
+          bagianA: 'Akurasi model AI rendah karena arsitektur jaringan terlampau sederhana untuk menangkap kompleksitas pola data masukan yang bising.',
+          bagianB: 'Fenomena Underfitting terjadi ketika jumlah parameter bobot W tidak memadai untuk membentuk pemetaan non-linear (Capacity Deficit).',
+          bagianC: 'Tambah jumlah Hidden Layers dan kurangi Noise Data untuk meningkatkan akurasi hingga 99%!',
           metrics: { Accuracy: `${accuracy}%`, Loss: loss.toFixed(3), Convergence: 'Underfit' }
         };
       } else {
@@ -580,6 +649,9 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
           badge: 'KONVERGENSI MODEL OPTIMAL 99%',
           title: 'Gradient Descent Berhasil Menemukan Minimum Global',
           description: 'Fungsi aktivasi Sigmoid/ReLU memetakan non-linearitas data dengan presisi tinggi!',
+          bagianA: 'Model kecerdasan buatan berhasil dilatih dengan sempurna! Pembelajaran Gradient Descent mencapai tingkat konvergensi dan akurasi tinggi.',
+          bagianB: 'Penggabungan fungsi aktivasi non-linear dan nilai Learning Rate yang ideal membawa turunan loss ∂L/∂w tepat mendekati titik minimum 0.',
+          bagianC: 'Model AI berada pada performa terbaik! Anda dapat mensimulasikan penambahan noise data untuk menguji ketahanan model.',
           metrics: { Accuracy: `${accuracy}%`, Loss: loss.toFixed(3), Convergence: 'Converged (99%)' }
         };
       }

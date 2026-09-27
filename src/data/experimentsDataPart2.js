@@ -44,6 +44,9 @@ export const PHYSICS_CHEMISTRY_EXPERIMENTS = {
           badge: 'TERLEMPAR / STALL AERODINAMIS',
           title: 'Drag Udara Ekstrem Memicu Turbulensi Terpisah',
           description: 'Sudut sayap terlalu curam pada kecepatan tinggi menciptakan drag luar biasa yang menghambat laju dan merusak stabilitas cengkraman ban.',
+          bagianA: 'Sudut sayap belakang yang terlalu tegak menciptakan turbulensi angin berputar di belakang bodi mobil. Udara gagal mengalir mulus sehingga hambatan angin (drag) membengkak ekstrem.',
+          bagianB: 'Berdasarkan Hukum Bernoulli P + ½ρv² = Konstan, perbedaan kecepatan udara atas dan bawah memicu pelepasan aliran (boundary layer separation), memicu efek stall aerodinamis.',
+          bagianC: 'Turunkan Sudut Kemiringan Sayap di bawah 25° dan kurangi Koefisien Drag Cd agar aliran udara kembali melekat mulus (laminar flow)!',
           metrics: { Downforce: `${Math.round(downforce)} N`, FuelConsumption: `${fuelPenalty.toFixed(1)} L/100km`, State: 'Stall' }
         };
       } else if (downforce < 500 && speed > 200) {
@@ -52,6 +55,9 @@ export const PHYSICS_CHEMISTRY_EXPERIMENTS = {
           badge: 'BAHAYA TERGELINCIR',
           title: 'Downforce Terlalu Minis di Tikungan',
           description: 'Cengkraman ban kurang karena aliran udara di atas mobil tidak menghasilkan beda tekanan Bernoulli yang cukup.',
+          bagianA: 'Mobil melaju kencang tetapi ban kurang menekan permukaan aspal. Saat bermanuver di tikungan tajam, mobil berisiko mengalami understeer dan tergelincir ke luar lintasan.',
+          bagianB: 'Kecepatan aliran udara di bawah mobil tidak cukup tinggi dibanding udara atas, sehingga beda tekanan ΔP kecil dan gaya tekan Downforce F_down = ½Cd·ρ·A·v² berada di bawah ambang batas cengkram.',
+          bagianC: 'Naikkan Sudut Sayap ke kisaran 15° - 25° untuk meningkatkan Downforce hingga di atas 1,000 N tanpa mengorbankan kecepatan puncak!',
           metrics: { Downforce: `${Math.round(downforce)} N`, FuelConsumption: `${fuelPenalty.toFixed(1)} L/100km`, State: 'Understeer' }
         };
       } else {
@@ -60,6 +66,9 @@ export const PHYSICS_CHEMISTRY_EXPERIMENTS = {
           badge: 'AERODINAMIS PRESISI TINGGI',
           title: 'Efek Bernoulli Memangkas Resitansi Udara',
           description: 'Supercar menempel sempurna di lintasan tikungan tajam dengan efisiensi bahan bakar yang terjaga!',
+          bagianA: 'Aliran angin menyapu bodi mobil dengan sangat lancar. Perbedaan tekanan udara atas dan bawah menciptakan Downforce kuat yang merekatkan ban ke aspal.',
+          bagianB: 'Persamaan Bernoulli bekerja presisi: udara bawah melaju kencang (tekanan rendah), udara atas melaju lambat (tekanan tinggi), menghasilkan Downforce ideal tanpa memicu hambatan drag berlebih.',
+          bagianC: 'Konfigurasi aerodinamis berada di titik puncak efisiensi! Anda bisa mencoba mengubah kecepatan untuk menguji batas cengkraman ban.',
           metrics: { Downforce: `${Math.round(downforce)} N`, FuelConsumption: `${fuelPenalty.toFixed(1)} L/100km`, State: 'Optimal' }
         };
       }
@@ -113,6 +122,9 @@ export const PHYSICS_CHEMISTRY_EXPERIMENTS = {
           badge: 'MELEDAK / OVERPRESSURE',
           title: 'Tekanan Piston Melebihi Batas Material Metal',
           description: 'Suhu tinggi ekstrem memicu ekspansi thermal berlebihan yang berisiko merusak dinding reaktor!',
+          bagianA: 'Suhu pembakaran dan tekanan gas berada di atas ambang kekuatan mekanis material piston. Risiko retak termal dan kelelahan bahan dapat menyebabkan ledakan reaktor.',
+          bagianB: 'Menurut Hukum Gas Ideal P·V = n·R·T dan Termodinamika, peningkatan T berlebihan memompa tekanan P melebihi yield strength paduan logam reaktor.',
+          bagianC: 'Turunkan Tekanan Gas di bawah 70 atm atau kecilkan Suhu Reservoir Panas Th ke batas aman 800°C - 900°C!',
           metrics: { Efficiency: `${efficiency.toFixed(1)}%`, Output: `${powerOutput} MW`, Risk: 'Critical' }
         };
       } else if (efficiency < 45) {
@@ -121,6 +133,9 @@ export const PHYSICS_CHEMISTRY_EXPERIMENTS = {
           badge: 'PEMBOROSAN ENERGI TINGGI',
           title: 'Selisih Suhu Terlalu Sempit',
           description: 'Lebih dari 55% energi panas terbuang sia-sia ke lingkungan tanpa terkonversi menjadi energi mekanik.',
+          bagianA: 'Perbedaan suhu antara ruang bakar (Th) dan pendingin (Tc) terlalu dekat. Akibatnya, sebagian besar panas terbuang sia-sia melalui gas buang.',
+          bagianB: 'Sesuai Formula Carnot η = 1 - (Tc/Th), semakin kecil rasio selisih (Th - Tc), semakin rendah persentase panas yang dapat dikonversi menjadi usaha bersih W = Qh - Qc.',
+          bagianC: 'Naiikkan Suhu Reservoir Panas (Th) atau Dinginkan Reservoir Dingin (Tc) menggunakan radiator pendingin cair agar efisiensi meloncat ke atas 60%!',
           metrics: { Efficiency: `${efficiency.toFixed(1)}%`, Output: `${powerOutput} MW`, Risk: 'Low Efficiency' }
         };
       } else {
@@ -129,6 +144,9 @@ export const PHYSICS_CHEMISTRY_EXPERIMENTS = {
           badge: 'EFISIENSI CARNOT MAX',
           title: 'Konversi Panas Menjadi Daya Listrik Sangat Optimal',
           description: 'Siklus kompresi dan ekspansi isothermal-adiabatic bekerja pada efisiensi maksimum Hukum II Termodinamika.',
+          bagianA: 'Reaktor bekerja dengan sangat efisien! Panas dari pembakaran dikonversi secara maksimal menjadi usaha mekanik putaran turbin generator listrik.',
+          bagianB: 'Siklus 4 tahap Carnot (Ekspansi Isotermal, Ekspansi Adiabatik, Kompresi Isotermal, Kompresi Adiabatik) beroperasi pada rentang rentang temperatur Kelvin presisi tinggi.',
+          bagianC: 'Sistem termodinamika berada dalam performa puncak. Anda dapat menguji berbagai kombinasi tekanan untuk mengamati daya output megawatt.',
           metrics: { Efficiency: `${efficiency.toFixed(1)}%`, Output: `${powerOutput} MW`, Risk: 'Optimal' }
         };
       }
@@ -181,6 +199,9 @@ export const PHYSICS_CHEMISTRY_EXPERIMENTS = {
           badge: 'SINYAL PUTUS / DEAD ZONE',
           title: 'Atenuasi Penyerapan Dinding Sangat Tinggi',
           description: 'Gelombang frekuensi tinggi diserap total oleh kisi-kisi beton tebal. Sinyal penerima jatuh ke titik nol dBm.',
+          bagianA: 'Gelombang elektromagnetik frekuensi milimeter (5G) terserap habis saat berusaha menembus halangan dinding beton tebal. Pengguna mengalami keterputusan sinyal total (dead zone).',
+          bagianB: 'Menurut Persamaan Eksponensial Peluruhan I = I₀ · e^(-αd), semakin tinggi frekuensi f, koefisien atenuasi α meloncat tinggi sehingga sinyal I menipis mendekati nol.',
+          bagianC: 'Gunakan frekuensi lebih rendah (misal 2.4 GHz - 6 GHz) untuk penetrasi dinding tebal, atau pasang penguat sinyal mikro (Small Cell / Repeater) di dalam ruangan!',
           metrics: { Intensity: `${intensity.toFixed(1)} W`, Speed: '0 Gbps', State: 'Disconnected' }
         };
       } else if (speedGbps < 1.5) {
@@ -189,6 +210,9 @@ export const PHYSICS_CHEMISTRY_EXPERIMENTS = {
           badge: 'KECEPATAN DROPDOWN',
           title: 'Gelombang Mengalami Difraksi & Redaman',
           description: 'Sinyal terhubung namun ping latency tinggi akibat transmisi daya lemah menembus halangan.',
+          bagianA: 'Sinyal masih dapat menembus halangan, namun kekuatannya sudah jauh melemah. Kecepatan transfer data drop dan ping jaringan menjadi tinggi (laggy).',
+          bagianB: 'Intensitas sinyal I berada di rentang marginal di mana rasio Sinyal terhadap Derau (SNR - Signal to Noise Ratio) rendah, menahan throughput maksimum data.',
+          bagianC: 'Naiikkan Daya Pancar Antena (Power) ke atas 70 Watt atau posisikan router di area tanpa sekat fisik tebal!',
           metrics: { Intensity: `${intensity.toFixed(1)} W`, Speed: `${speedGbps} Gbps`, State: 'Laggy' }
         };
       } else {
@@ -197,6 +221,9 @@ export const PHYSICS_CHEMISTRY_EXPERIMENTS = {
           badge: 'KONEKSI 5G ULTRA FAST',
           title: 'Resonansi Gelombang EM Sangat Presisi',
           description: 'Daya pancar dan penetrasi frekuensi menghasilkan pita bandwidth gigabit per detik tanpa lag!',
+          bagianA: 'Sinyal 5G merambat jernih sampai ke perangkat penerima. Kecepatan transfer data mencapai skala Gigabit per detik (Gbps) dengan ketersediaan jaringan sempurna.',
+          bagianB: 'Panjang gelombang λ = c/f dan daya pancar I₀ berada dalam rasio penetrasi optimal, menjaga keutuhan paket data berkecepatan tinggi.',
+          bagianC: 'Koneksi jaringan elektromagnetik berada pada titik paling ideal. Cobalah menguji perbedaan frekuensi 4G vs 5G untuk membandingkan daya tembusnya!',
           metrics: { Intensity: `${intensity.toFixed(1)} W`, Speed: `${speedGbps} Gbps`, State: 'Connected' }
         };
       }
@@ -247,6 +274,9 @@ export const PHYSICS_CHEMISTRY_EXPERIMENTS = {
           badge: 'KONSENTRASI TOKSIK / OVERDOSIS',
           title: 'Laju Pelarutan Obat Terlalu Eksplosif',
           description: 'Partikel senyawa obat terurai sekaligus di lambung. Lonjakan kadar obat dalam darah melebihi ambang batas aman ginjal!',
+          bagianA: 'Partikel obat yang terlalu halus dengan luas permukaan sangat besar larut seketika begitu menyentuh asam lambung. Lonjakan kadar zat aktif menembus dinding usus secara drastis, berisiko meracuni organ ginjal.',
+          bagianB: 'Menurut Hukum Laju Reaksi v = k·[A]^n, semakin luas bidang sentuh [A], frekuensi tumbukan efektif partikel pelarut melonjak eksponensial sehingga laju v melampaui jendela terapi aman (Therapeutic Window).',
+          bagianC: 'Gunakan selaput polimer pelapis kapsul (Extended Release) untuk memperkecil luas permukaan kontak A, atau kurangi konstanta laju k agar kelarutan berlangsung bertahap!',
           metrics: { Rate: `${dissolveRate.toFixed(1)} mg/L/h`, PeakTime: '0.2 Jam', Risk: 'Toxic' }
         };
       } else if (dissolveRate < 10) {
@@ -255,6 +285,9 @@ export const PHYSICS_CHEMISTRY_EXPERIMENTS = {
           badge: 'OBAT TIDAK EFEKTIF',
           title: 'Partikel Terlalu Kasar / Kurang Terbuka',
           description: 'Kelarutan obat terlalu lambat sehingga obat terbuang melalui ekskresi sebelum sempat diserap pembuluh darah.',
+          bagianA: 'Obat sulit melarut di dalam cairan pencernaan karena bentuk partikelnya yang terlalu padat/kasar. Pasien tidak merasakan efek penyembuhan karena zat aktif terbuang lewat sistem ekskresi.',
+          bagianB: 'Luas permukaan sentuh partikel A yang minim membuat frekuensi tumbukan molekul asam lambung rendah, sehingga reaksi pelarutan v = k·[A]^n berjalan sangat lambat di bawah dosis minimum efektif.',
+          bagianC: 'Hancurkan partikel obat menjadi serbuk lebih halus (perbesar Luas Permukaan A) atau minum obat saat kondisi pH lambung berada pada derajat keasaman ideal (pH 1.5 - 2.5)!',
           metrics: { Rate: `${dissolveRate.toFixed(1)} mg/L/h`, PeakTime: '6.0 Jam', Risk: 'Ineffective' }
         };
       } else {
@@ -263,6 +296,9 @@ export const PHYSICS_CHEMISTRY_EXPERIMENTS = {
           badge: 'DOSIS PRESISI AMAN',
           title: 'Kurva Kinetika Farmakokinetik Ideal',
           description: 'Senyawa aktif diserap secara konstan selama 12 jam pada jendela terapi terapeutik sempurna.',
+          bagianA: 'Kapsul obat melarut secara berkala dengan laju yang sangat stabil di cairan lambung. Zat aktif diserap pembuluh darah secara bertahap menjaga kadar penyembuhan di tingkat optimal.',
+          bagianB: 'Keseimbangan kinetika laju reaksi v = k·[A] dan konstanta pelepasan k_a menghasilkan kurva konsentrasi darah C(t) yang berada di tengah rentang terapeutik tanpa menyentuh batas toksik.',
+          bagianC: 'Formulasi kinetika obat berada di kondisi paling ideal. Anda dapat menguji perubahan keasaman pH untuk mensimulasikan pencernaan pasien!',
           metrics: { Rate: `${dissolveRate.toFixed(1)} mg/L/h`, PeakTime: '2.5 Jam', Risk: 'Safe' }
         };
       }
@@ -316,6 +352,9 @@ export const PHYSICS_CHEMISTRY_EXPERIMENTS = {
           badge: 'THERMAL RUNAWAY / FIRE RISK',
           title: 'Resiko Kebakaran akibat Degenerasi Elektrolit',
           description: 'Suhu di atas 55°C merusak lapisan SEI (Solid Electrolyte Interphase) memicu korsleting internal anode-katode.',
+          bagianA: 'Suhu baterai yang terlalu panas meningkatkan laju degradasi material sel secara ekstrem. Cairan elektrolit menguap dan menciptakan gas yang berisiko memicu ledakan thermal runaway.',
+          bagianB: 'Menurut Persamaan Nernst E = E° - (RT/nF)ln(Q), suhu T yang sangat tinggi meningkatkan energi kinetik partikel tetapi merusak struktur kisi kristal elektroda.',
+          bagianC: 'Turunkan Suhu Baterai (T) hingga kisaran 25°C - 35°C dan jaga Konsentrasi Ion Elektrolit di 1.5 M agar voltase sel berada di titik paling stabil!',
           metrics: { Voltage: `${voltage.toFixed(2)} V`, Health: `${batteryHealth}%`, Risk: 'Hazardous' }
         };
       } else if (temperature < 0) {
@@ -324,6 +363,9 @@ export const PHYSICS_CHEMISTRY_EXPERIMENTS = {
           badge: 'PERFORMA DROPDOWN',
           title: 'Mobil Listrik Kehilangan Daya di Suhu Dingin',
           description: 'Ion Litium lambat bergerak di cairan elektrolit beku, meningkatkan resistansi dalam baterai.',
+          bagianA: 'Di suhu sub-zero / salju, viskositas cairan elektrolit meningkat drastis. Ion litium kesulitan berpindah dari anoda ke katoda sehingga jangkauan jarak tempuh mobil turun tajam.',
+          bagianB: 'Kecepatan difusi ion berbanding lurus dengan temperatur T. Hambatan dalam sel (Internal Resistance) melonjak sehingga drop tegangan menjadi besar.',
+          bagianC: 'Aktifkan sistem pemanas baterai (Pre-conditioning) untuk menaikkan suhu T ke atas 15°C sebelum mengendarai mobil listrik!',
           metrics: { Voltage: `${voltage.toFixed(2)} V`, Health: `${batteryHealth}%`, Risk: 'Low Range' }
         };
       } else {
@@ -332,6 +374,9 @@ export const PHYSICS_CHEMISTRY_EXPERIMENTS = {
           badge: 'KAPASITAS DAYA OPTIMAL',
           title: 'Transfer Elektron Berlangsung Efisien',
           description: 'Output voltase sel Volta stabil dengan efisiensi energi delta G maksimum untuk daya tempuh jauh.',
+          bagianA: 'Suhu dan konsentrasi elektrolit berada pada kesetimbangan ideal. Ion litium berpindah lancar menembus membran separator, menghasilkan aliran arus listrik yang deras dan stabil.',
+          bagianB: 'Potensial sel Volta E_sel menghasilkan Energi Bebas Gibbs ΔG = -nF E_sel bernilai negatif maksimal, menjamin reaksi redoks spontan berdaya tinggi.',
+          bagianC: 'Pengaturan baterai berada di kondisi paling optimal. Anda bisa mencoba memilih komposisi katoda yang berbeda untuk membandingkan output voltase dasar!',
           metrics: { Voltage: `${voltage.toFixed(2)} V`, Health: `${batteryHealth}%`, Risk: 'Healthy' }
         };
       }
@@ -383,6 +428,9 @@ export const PHYSICS_CHEMISTRY_EXPERIMENTS = {
           badge: 'REAKSI MACET / TANPA PRODUKSI',
           title: 'Energi Aktivasi Terlalu Tinggi Tanpa Katalis',
           description: 'Tanpa katalis Fe, ikatan rangkap tiga N≡N sangat sulit putus. Pabrik pupuk tidak menghasilkan molekul NH3.',
+          bagianA: 'Reaktor tidak menghasilkan molekul amonia sama sekali. Ikatan kovalen rangkap tiga N≡N yang amat kuat gagal terputus karena energi aktivasi awal yang terlalu besar.',
+          bagianB: 'Katalis besi (Fe) berfungsi menyediakan mekanisme rute alternatif dengan Energi Aktivasi (Ea) lebih rendah. Tanpa katalis dan suhu rendah, laju pembentukan NH3 mendekati nol.',
+          bagianC: 'Aktifkan Katalis Serbuk Besi (Fe = 1) dan naikkan Suhu Reaksi hingga 450°C untuk memutus ikatan N≡N dengan cepat!',
           metrics: { Yield: `${yieldPct}%`, Speed: 'Macet', AmoniaOutput: '0 Ton' }
         };
       } else if (reactionTemp > 550) {
@@ -391,6 +439,9 @@ export const PHYSICS_CHEMISTRY_EXPERIMENTS = {
           badge: 'AZAS LE CHATELIER BERGESER KIRI',
           title: 'Hasil Kesetimbangan Menguap Kembali',
           description: 'Karena reaksi eksotermik, peningkatan suhu tinggi menggeser reaksi kembali membentuk gas N2 dan H2.',
+          bagianA: 'Reaksi berlangsung cepat namun molekul amonia yang terbentuk kembali terurai menjadi gas N2 dan H2. Hasil rendemen pupuk drop drastis.',
+          bagianB: 'Berdasarkan Azas Le Chatelier pada reaksi eksotermik (ΔH < 0), peningkatan suhu merangsang reaksi bergeser ke arah endotermik (ke kiri), merusak tingkat kesetimbangan Kp.',
+          bagianC: 'Turunkan Suhu Reaksi ke kompromi ideal 450°C dan tingkatkan Tekanan Tabung P hingga 200 - 300 atm untuk mendorong kesetimbangan ke arah pembentukan produk amonia (ke kanan)!',
           metrics: { Yield: `${Math.max(5, yieldPct)}%`, Speed: 'Sangat Cepat', AmoniaOutput: 'Low Yield' }
         };
       } else {
@@ -399,6 +450,9 @@ export const PHYSICS_CHEMISTRY_EXPERIMENTS = {
           badge: 'SINTESIS AMONIA OPTIMAL',
           title: 'Kompromi Tekanan-Suhu Sempurna',
           description: 'Tekanan tinggi perbanyak molekul produk, suhu 450°C + katalis Fe menghasilkan amonia berlimpah!',
+          bagianA: 'Pabrik pupuk beroperasi pada kapasitas produksi maksimal! Molekul gas N2 dan H2 bereaksi efektif membentuk amonia NH3 cair berlimpah.',
+          bagianB: 'Kompromi Azas Le Chatelier tercapai sempurna: Tekanan tinggi (200 atm) menggeser reaksi ke sisi molekul gas lebih sedikit (2 mol NH3), sementara katalis Fe melompati batas energi aktivasi.',
+          bagianC: 'Kondisi reaktor industri berada dalam efisiensi tertinggi. Anda dapat menguji perubahan tekanan untuk melihat pergeseran rendemen produk!',
           metrics: { Yield: `${yieldPct}%`, Speed: 'Optimal', AmoniaOutput: '1,200 Ton/Hari' }
         };
       }
