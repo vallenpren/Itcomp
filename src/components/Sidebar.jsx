@@ -14,14 +14,13 @@ export default function Sidebar({ currentView, onViewChange, currentUser }) {
 
   const studentNavItems = [
     { id: 'dashboard', label: 'Asesmen Saya', icon: LayoutDashboard },
-    { id: 'sandbox', label: 'Real-World Sandbox', icon: Rocket, badge: 'Kontekstual' },
+    { id: 'sandbox', label: 'Lab Konsep Nyata', icon: Rocket, badge: 'Simulasi Visual' },
     { id: 'history', label: 'Riwayat & Hasil', icon: FileText },
     { id: 'diagnostic', label: 'Diagnostik Pintar', icon: Target, badge: '5 Pilar' },
   ];
 
   const teacherNavItems = [
     { id: 'teacher_dashboard', label: 'Menu Utama Guru', icon: LayoutDashboard },
-    { id: 'projector', label: 'Layar Proyektor Kelas', icon: Tv, badge: '1-Klik' },
     { id: 'quick_practice', label: 'Mulai Latihan Siswa', icon: Rocket, badge: '3-Langkah' },
     { id: 'teacher_cheat_sheet', label: 'Contekan & Kelompok', icon: Lightbulb, badge: 'Pastel' },
     { id: 'history', label: 'Daftar Nilai Siswa', icon: FileText },

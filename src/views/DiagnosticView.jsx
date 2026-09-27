@@ -15,13 +15,15 @@ import {
   RotateCcw,
   Download,
   Share2,
-  FileText
+  FileText,
+  Rocket,
+  ArrowRight
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import RadarChart from '../components/RadarChart';
 import { COMPETENCY_PILLARS, MOCK_QUESTIONS, SMART_DIAGNOSTICS_DB } from '../data/mockData';
 
-export default function DiagnosticView({ testResult, assessment, onBackToDashboard, onRetakeTest }) {
+export default function DiagnosticView({ testResult, assessment, onBackToDashboard, onRetakeTest, onOpenSandbox }) {
   const [expandedQuestion, setExpandedQuestion] = useState(null);
 
   const score = testResult?.score ?? 85;
@@ -368,6 +370,36 @@ export default function DiagnosticView({ testResult, assessment, onBackToDashboa
           })}
         </div>
 
+      </div>
+
+      {/* 4. SMART RECOMMENDATION ACTION CARD (CTA FOR LAB KONSEP NYATA) */}
+      <div className="bg-gradient-to-r from-indigo-900 via-slate-900 to-indigo-950 p-6 sm:p-8 rounded-3xl text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 border-2 border-indigo-500/30">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-lg shadow-indigo-600/30">
+            <Rocket className="w-6 h-6 animate-pulse" />
+          </div>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-black uppercase">
+                Visual Lab Simulation
+              </span>
+            </div>
+            <h3 className="text-base sm:text-xl font-black text-white">
+              Perlu latihan nalar visual pada bab ini?
+            </h3>
+            <p className="text-xs text-slate-300 font-medium max-w-lg">
+              Eksplorasi simulasi interaktif multi-mata pelajaran (Kalkulus, Fisika, Kimia, dll.) untuk memahami konsep rumus secara kontekstual.
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={onOpenSandbox}
+          className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs sm:text-sm transition-all shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2 shrink-0 active:scale-95"
+        >
+          <span>Buka Lab Konsep Nyata 🧪</span>
+          <ArrowRight className="w-4 h-4" />
+        </button>
       </div>
 
     </div>

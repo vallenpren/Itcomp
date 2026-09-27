@@ -13,21 +13,27 @@ import {
   Play,
   Lightbulb,
   Search,
-  ChevronDown
+  ChevronDown,
+  Monitor,
+  Send,
+  Compass
 } from 'lucide-react';
 import { MOCK_ASSESSMENTS } from '../data/mockData';
 import QuickPracticeModal from '../components/QuickPracticeModal';
+import TeacherClassModeModal from '../components/TeacherClassModeModal';
 
 export default function TeacherDashboard({ 
   currentUser, 
   onStartCreateAssessment, 
   onViewAnalytics, 
   onOpenProjector,
+  onStartLiveSession,
   onOpenCheatSheet,
   onPublishAssessment,
   assessmentsList = [] 
 }) {
   const [isQuickModalOpen, setIsQuickModalOpen] = useState(false);
+  const [isClassModeModalOpen, setIsClassModeModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   const assessmentsToRender = assessmentsList.length > 0 ? assessmentsList : MOCK_ASSESSMENTS;
@@ -68,149 +74,117 @@ export default function TeacherDashboard({
         </div>
       </div>
 
-      {/* 2. TAMPILAN DASHBOARD GURU HANYA BERISI 3 AKSI UTAMA (BESAR, JELAS, MIN 16PX) */}
+      {/* 2. TAMPILAN DASHBOARD GURU - 3 KARTU AKSI UTAMA (CLEAN LIGHT MODE) */}
       <div className="space-y-4">
         <div>
           <h2 className="text-2xl font-black text-slate-900 tracking-tight">
             3 Akses Utama Hari Ini
           </h2>
-          <p className="text-base text-slate-600 mt-0.5">
-            Pilih salah satu tombol di bawah untuk memulai kegiatan belajar mengajar dengan cepat.
+          <p className="text-sm sm:text-base text-slate-600 mt-0.5 font-medium">
+            Pilih salah satu aktivitas di bawah untuk memulai kegiatan belajar mengajar dengan cepat.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           
-          {/* TOMBOL 1 [LAYAR PROYEKTOR KELAS] */}
-          <div className="bg-gradient-to-br from-indigo-900 via-slate-900 to-indigo-950 p-6 sm:p-8 rounded-3xl text-white shadow-xl flex flex-col justify-between space-y-6 hover:shadow-2xl transition-all border border-indigo-800/80 group">
+          {/* KARTU 1: LAYAR PROYEKTOR KELAS */}
+          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-6 hover:shadow-md transition-all group">
             
             <div className="space-y-4">
+              {/* Top Header: 48x48px Pastel Icon Circle & Badge */}
               <div className="flex items-center justify-between">
-                <div className="w-14 h-14 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-500/30">
-                  <Tv className="w-8 h-8" />
+                <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                  <Monitor className="w-6 h-6" />
                 </div>
-                <span className="text-xs font-black uppercase px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                  1 Klik Siap Tayang
+                <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-xs font-black">
+                  ⚡ 1-Klik Siap Tayang
                 </span>
               </div>
 
               <div>
-                <h3 className="text-2xl font-black text-white group-hover:text-indigo-300 transition-colors">
-                  Tombol 1: Layar Proyektor Kelas
+                <h3 className="text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                  Layar Proyektor Kelas
                 </h3>
-                <p className="text-base text-slate-300 mt-2 leading-relaxed font-medium">
-                  1 klik untuk langsung menampilkan simulasi visual materi hari ini ke layar proyektor tanpa menu yang mengganggu.
+                <p className="text-sm text-slate-600 mt-2 leading-relaxed font-medium">
+                  Buka simulator visual interaktif atau tayangkan slide presentasi langsung ke layar proyektor kelas dan HP siswa.
                 </p>
-              </div>
-
-              {/* PRESET TOMBOL 1-KLIK LANGSUNG DI KARTU */}
-              <div className="p-3.5 rounded-2xl bg-slate-800/80 border border-slate-700/80 space-y-2">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Preset Otomatis Siap Pakai:</span>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => onOpenProjector('success')}
-                    className="flex-1 py-2 px-3 rounded-xl bg-emerald-600/90 hover:bg-emerald-600 text-white text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all"
-                  >
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>🟢 Contoh Sukses</span>
-                  </button>
-
-                  <button
-                    onClick={() => onOpenProjector('fail')}
-                    className="flex-1 py-2 px-3 rounded-xl bg-red-600/90 hover:bg-red-600 text-white text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all"
-                  >
-                    <AlertTriangle className="w-4 h-4" />
-                    <span>🔴 Contoh Gagal</span>
-                  </button>
-                </div>
               </div>
             </div>
 
-            {/* TOMBOL UTAMA BUKAI LAYAR PROYEKTOR */}
+            {/* Tombol Aksi Bawah: Solid Royal Indigo (#2563EB) */}
             <button
-              onClick={() => onOpenProjector('success')}
-              className="w-full py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-lg transition-all shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-3 active:scale-98"
+              onClick={() => setIsClassModeModalOpen(true)}
+              className="w-full py-3.5 px-4 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white font-extrabold text-sm transition-all flex items-center justify-center gap-2 shadow-xs active:scale-98"
             >
-              <Tv className="w-6 h-6" />
-              <span>Buka Layar Proyektor</span>
+              <span>Buka Layar Kelas ↗</span>
             </button>
 
           </div>
 
-          {/* TOMBOL 2 [MULAI LATIHAN SISWA] */}
-          <div className="bg-gradient-to-br from-emerald-900 via-slate-900 to-teal-950 p-6 sm:p-8 rounded-3xl text-white shadow-xl flex flex-col justify-between space-y-6 hover:shadow-2xl transition-all border border-emerald-800/80 group">
+          {/* KARTU 2: MULAI LATIHAN SISWA */}
+          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-6 hover:shadow-md transition-all group">
             
             <div className="space-y-4">
+              {/* Top Header: 48x48px Pastel Icon Circle & Badge */}
               <div className="flex items-center justify-between">
-                <div className="w-14 h-14 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-lg shadow-emerald-500/30">
-                  <Rocket className="w-8 h-8" />
+                <div className="w-12 h-12 rounded-full bg-teal-100 text-teal-600 flex items-center justify-center shrink-0">
+                  <Send className="w-6 h-6" />
                 </div>
-                <span className="text-xs font-black uppercase px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                  3 Langkah Cepat
+                <span className="px-3 py-1 rounded-full bg-teal-50 text-teal-700 border border-teal-200 text-xs font-black">
+                  ⏱ 3 Langkah Mudah
                 </span>
               </div>
 
               <div>
-                <h3 className="text-2xl font-black text-white group-hover:text-emerald-300 transition-colors">
-                  Tombol 2: Mulai Latihan Siswa
+                <h3 className="text-xl font-bold text-slate-900 group-hover:text-teal-600 transition-colors">
+                  Mulai Latihan Siswa
                 </h3>
-                <p className="text-base text-slate-300 mt-2 leading-relaxed font-medium">
-                  Cukup 3 langkah cepat: Pilih Mapel ➔ Pilih Kelas ➔ Klik "Bagikan Ujian". Paket template soal sudah siap pakai tanpa buat soal dari nol.
+                <p className="text-sm text-slate-600 mt-2 leading-relaxed font-medium">
+                  Pilih mata pelajaran, tentukan kelas, dan bagikan paket latihan bernalar siap pakai tanpa perlu mengetik soal dari nol.
                 </p>
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-slate-800/80 border border-slate-700/80 text-xs text-slate-300 space-y-1">
-                <span className="font-extrabold text-emerald-400">⚡ Alur Praktis Senior:</span>
-                <p className="font-semibold">Paket soal siap pakai langsung terkirim ke HP siswa tanpa ribet mengetik.</p>
               </div>
             </div>
 
-            {/* TOMBOL UTAMA MULAI LATIHAN SISWA */}
+            {/* Tombol Aksi Bawah: Solid Teal (#0D9488) */}
             <button
               onClick={() => setIsQuickModalOpen(true)}
-              className="w-full py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-lg transition-all shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-3 active:scale-98"
+              className="w-full py-3.5 px-4 rounded-xl bg-[#0D9488] hover:bg-teal-700 text-white font-extrabold text-sm transition-all flex items-center justify-center gap-2 shadow-xs active:scale-98"
             >
-              <Rocket className="w-6 h-6" />
-              <span>Bagikan Ujian Cepat</span>
+              <span>Bagikan Latihan ↗</span>
             </button>
 
           </div>
 
-          {/* TOMBOL 3 [CONTEKAN MENGAJAR HARI INI] */}
-          <div className="bg-gradient-to-br from-amber-950 via-slate-900 to-orange-950 p-6 sm:p-8 rounded-3xl text-white shadow-xl flex flex-col justify-between space-y-6 hover:shadow-2xl transition-all border border-amber-800/80 group">
+          {/* KARTU 3: CONTEKAN MENGAJAR */}
+          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-6 hover:shadow-md transition-all group">
             
             <div className="space-y-4">
+              {/* Top Header: 48x48px Pastel Icon Circle & Badge */}
               <div className="flex items-center justify-between">
-                <div className="w-14 h-14 rounded-2xl bg-amber-600 text-white flex items-center justify-center shadow-lg shadow-amber-500/30">
-                  <Lightbulb className="w-8 h-8" />
+                <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+                  <Compass className="w-6 h-6" />
                 </div>
-                <span className="text-xs font-black uppercase px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                  Panduan Kelas
+                <span className="px-3 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-xs font-black">
+                  💡 Panduan Tatap Muka
                 </span>
               </div>
 
               <div>
-                <h3 className="text-2xl font-black text-white group-hover:text-amber-300 transition-colors">
-                  Tombol 3: Contekan Mengajar
+                <h3 className="text-xl font-bold text-slate-900 group-hover:text-amber-600 transition-colors">
+                  Contekan Mengajar
                 </h3>
-                <p className="text-base text-slate-300 mt-2 leading-relaxed font-medium">
-                  Halaman sederhana berisi teks ringkas rekomendasi mengajar (siapa siswa butuh visual, materi paling banyak salah, & ide kegiatan kelas).
+                <p className="text-sm text-slate-600 mt-2 leading-relaxed font-medium">
+                  Rangkuman praktis kelompok belajar siswa (visual vs hitungan) dan materi yang paling banyak membingungkan untuk kelas hari ini.
                 </p>
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-slate-800/80 border border-slate-700/80 text-xs text-slate-300 space-y-1">
-                <span className="font-extrabold text-amber-400">💡 Bebas Istilah Rumit:</span>
-                <p className="font-semibold">Dilengkapi kartu nama kelompok siswa pastel yang praktis untuk guru.</p>
               </div>
             </div>
 
-            {/* TOMBOL UTAMA LIHAT CONTEKAN MENGAJAR */}
+            {/* Tombol Aksi Bawah: Solid Slate-800 (#1E293B) */}
             <button
               onClick={onOpenCheatSheet}
-              className="w-full py-4 rounded-2xl bg-amber-600 hover:bg-amber-500 text-white font-black text-lg transition-all shadow-lg shadow-amber-600/30 flex items-center justify-center gap-3 active:scale-98"
+              className="w-full py-3.5 px-4 rounded-xl bg-[#1E293B] hover:bg-slate-900 text-white font-extrabold text-sm transition-all flex items-center justify-center gap-2 shadow-xs active:scale-98"
             >
-              <BookOpen className="w-6 h-6" />
-              <span>Buka Contekan Mengajar</span>
+              <span>Lihat Panduan Kelas ↗</span>
             </button>
 
           </div>
@@ -291,6 +265,21 @@ export default function TeacherDashboard({
         <QuickPracticeModal
           onClose={() => setIsQuickModalOpen(false)}
           onPublishAssessment={onPublishAssessment}
+        />
+      )}
+
+      {/* POPUP MODAL PILIHAN MODE KELAS GURU */}
+      {isClassModeModalOpen && (
+        <TeacherClassModeModal
+          onClose={() => setIsClassModeModalOpen(false)}
+          onStartLiveSession={(sessionConfig) => {
+            setIsClassModeModalOpen(false);
+            if (onStartLiveSession) {
+              onStartLiveSession(sessionConfig);
+            } else {
+              onOpenProjector('success');
+            }
+          }}
         />
       )}
 

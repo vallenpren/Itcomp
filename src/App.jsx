@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import BottomBar from './components/BottomBar';
@@ -11,6 +11,7 @@ import CreateAssessmentWizard from './views/CreateAssessmentWizard';
 import TeacherAnalyticsView from './views/TeacherAnalyticsView';
 import RealWorldSandbox from './components/RealWorldSandbox';
 import ProjectorView from './components/ProjectorView';
+import StudentLiveView from './components/StudentLiveView';
 import QuickPracticeModal from './components/QuickPracticeModal';
 import TeacherCheatSheet from './components/TeacherCheatSheet';
 import { MOCK_USERS, MOCK_ASSESSMENTS } from './data/mockData';
@@ -20,11 +21,151 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState(MOCK_USERS.teacher); // Default teacher view to demonstrate teacher UI
   const [isLoggedIn, setIsLoggedIn] = useState(true);
 
-  // Active view: 'dashboard' | 'teacher_dashboard' | 'projector' | 'quick_practice' | 'teacher_cheat_sheet' | 'test' | 'diagnostic' | 'login' | 'history' | 'create_assessment' | 'teacher_analytics' | 'sandbox'
+  // Active view: 'dashboard' | 'teacher_dashboard' | 'projector' | 'student_live' | 'quick_practice' | 'teacher_cheat_sheet' | 'test' | 'diagnostic' | 'login' | 'history' | 'create_assessment' | 'teacher_analytics' | 'sandbox'
   const [currentView, setCurrentView] = useState('teacher_dashboard');
   
   // Projector initial preset state
   const [projectorPreset, setProjectorPreset] = useState('success');
+
+  // Shared Live Presentation Session State (Teacher Broadcast & Student Mirror Sync)
+  const [liveSessionState, setLiveSessionState] = useState(() => {
+    try {
+      const saved = localStorage.getItem('smarttka_live_session_state');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (e) {}
+
+    return {
+      isActive: true, // Active by default for quick demo
+      mode: 'lab', // 'lab' | 'ppt'
+      subjectId: 'math',
+      experimentId: '1A',
+      sliderValues: { angle: 45, v0: 20, fuelBurnRate: 150, payloadMass: 4000, launchAngle: 75 },
+      activePreset: 'success',
+      isSimulating: false,
+      simulationProgress: 100,
+      pptFileName: 'Modul_TKA_Fisika_Kalkulus_Socratix.pptx',
+      currentSlideIndex: 0,
+      scrollPercentage: 0,
+      fileType: 'mock',
+      fileUrl: null,
+      slides: [
+        {
+          title: 'Slide 1: Pengenalan Trajektori Parabola & Kalkulus',
+          subtitle: 'Konsep Laju Perubahan Instan f\'(t) = dv/dt',
+          content: 'Parabola terbentuk dari dua komponen gerak yang saling bebas: Gerak Lurus Beraturan (GLB) pada sumbu X dan Gerak Lurus Berubah Beraturan (GLBB) pada sumbu Y akibat gravitasi bumi.',
+          formula: 'y(t) = v_{0y} \\cdot t - \\frac{1}{2} g t^2',
+          bulletPoints: [
+            'Vektor kecepatan awal membelah menjadi v0x = v0 cos(θ) dan v0y = v0 sin(θ).',
+            'Titik tertinggi dicapai saat vy = 0, yaitu t_peak = (v0 sin θ) / g.',
+            'Jarak jangkauan maksimum X_max terjadi pada sudut elevasi θ = 45°.'
+          ]
+        },
+        {
+          title: 'Slide 2: Aplikasi Industri — Peluncuran Roket & Satelit LEO',
+          subtitle: 'Penerapan Diferensial pada Kecepatan Lolos Orbit',
+          content: 'Satelit Starlink dan Roket Falcon 9 memicu pembakaran tingkat dua untuk mencapai kecepatan lepas 11.2 km/s tanpa terbakar di atmosfer padat.',
+          formula: 'f\'(t) = \\frac{dv}{dt} = \\frac{F_{dorong} - m(t) \\cdot g - F_{hambat}}{m(t)}',
+          bulletPoints: [
+            'Massa m(t) terus berkurang drastis karena konsumsi bahan bakar.',
+            'Sudut luncur optimal (75°) meminimalkan gesekan udara di atmosfer rendah.',
+            'Kegagalan laju pembakaran f\'(t) memicu roket jatuh kembali ke bumi.'
+          ]
+        },
+        {
+          title: 'Slide 3: Analisis Momen Beban — Jembatan Gantung',
+          subtitle: 'Kalkulus Integral pada Kurva Katenari Insinyur Sipil',
+          content: 'Integrasi beban w(x) menghasilkan momen gaya M = ∫ w(x)·(L - x) dx yang menentukan ketebalan kabel baja penopang jembatan.',
+          formula: 'M = \\int_0^L w(x) \\cdot (L - x) \\, dx',
+          bulletPoints: [
+            'Span jembatan yang semakin panjang meningkatkan momen beban secara kuadratik.',
+            'Distribusi beban merata membentuk kurva parabola katenari alami.',
+            'Micro-crack pada kabel terjadi saat rasio keamanan di bawah 1.0.'
+          ]
+        },
+        {
+          title: 'Slide 4: Latihan Soal Nalar TKA & Diskusi Kelas',
+          subtitle: 'Uji Pemahaman Konsep Trajektori & Sudut Elevasi',
+          content: 'Sebuah roket uji diluncurkan pada kecepatan awal 20 m/s. Manakah sudut elevasi yang memberikan jangkauan terjauh?',
+          formula: 'R_{max} = \\frac{v_0^2 \\sin(2\\theta)}{g}',
+          bulletPoints: [
+            'A. Sudut 15° (Terlalu landai, jatuh prematur)',
+            'B. Sudut 45° (Optimal sin(90°) = 1)',
+            'C. Sudut 75° (Terlalu curam, melesat tinggi tapi pendek)',
+            'Ketuk "Ajukan Pertanyaan Nalar ✋" pada HP Anda jika ragu!'
+          ]
+        }
+      ],
+      questions: [
+        { id: 1, studentName: 'Ahmad Fauzi', text: 'Bu, mengapa sin(90°) memberikan nilai maksimum 1 pada sudut 45°?', time: '09:42' },
+        { id: 2, studentName: 'Siti Rahma', text: 'Pak, apakah massa payload mempengaruhi sudut luncur roket?', time: '09:44' }
+      ],
+      classCode: 'TKA-882',
+      connectedCount: 32,
+      lastUpdated: Date.now()
+    };
+  });
+
+  // REAL-TIME BROADCASTCHANNEL & LOCALSTORAGE SYNCRONIZATION LISTENER
+  useEffect(() => {
+    let channel;
+    try {
+      channel = new BroadcastChannel('smarttka_live_classroom');
+      channel.onmessage = (event) => {
+        if (event.data?.type === 'SYNC_SESSION' && event.data?.payload) {
+          setLiveSessionState(event.data.payload);
+        } else if (event.data?.type === 'STUDENT_QUESTION' && event.data?.question) {
+          setLiveSessionState(prev => {
+            const exists = prev.questions.some(q => q.id === event.data.question.id);
+            if (exists) return prev;
+            const updatedQuestions = [event.data.question, ...prev.questions];
+            const newState = { ...prev, questions: updatedQuestions, lastUpdated: Date.now() };
+            try {
+              localStorage.setItem('smarttka_live_session_state', JSON.stringify(newState));
+            } catch (e) {}
+            return newState;
+          });
+        }
+      };
+    } catch (e) {
+      console.warn('BroadcastChannel not supported in environment, using localStorage fallback');
+    }
+
+    const handleStorageChange = (e) => {
+      if (e.key === 'smarttka_live_session_state' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          setLiveSessionState(parsed);
+        } catch (err) {}
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      if (channel) channel.close();
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
+  // Helper function to broadcast state changes across tabs/windows
+  const broadcastState = (newState) => {
+    setLiveSessionState(newState);
+    try {
+      localStorage.setItem('smarttka_live_session_state', JSON.stringify(newState));
+    } catch (e) {}
+
+    try {
+      const channel = new BroadcastChannel('smarttka_live_classroom');
+      channel.postMessage({
+        type: 'SYNC_SESSION',
+        payload: newState,
+        timestamp: Date.now()
+      });
+      channel.close();
+    } catch (e) {}
+  };
 
   // Assessments list state (supports dynamically created ones)
   const [assessmentsList, setAssessmentsList] = useState(MOCK_ASSESSMENTS);
@@ -37,12 +178,12 @@ export default function App() {
   const handleSwitchUserRole = () => {
     if (currentUser.role === 'student') {
       setCurrentUser(MOCK_USERS.teacher);
-      if (currentView !== 'test') {
+      if (currentView !== 'test' && currentView !== 'student_live') {
         setCurrentView('teacher_dashboard');
       }
     } else {
       setCurrentUser(MOCK_USERS.student);
-      if (currentView !== 'test') {
+      if (currentView !== 'test' && currentView !== 'projector') {
         setCurrentView('dashboard');
       }
     }
@@ -90,7 +231,81 @@ export default function App() {
 
   const handleOpenProjector = (preset = 'success') => {
     setProjectorPreset(preset);
+    const newState = {
+      ...liveSessionState,
+      isActive: true,
+      activePreset: preset,
+      lastUpdated: Date.now()
+    };
+    broadcastState(newState);
     setCurrentView('projector');
+  };
+
+  const handleStartLiveSession = (config) => {
+    const newState = {
+      ...liveSessionState,
+      isActive: true,
+      lastUpdated: Date.now(),
+      ...config
+    };
+    broadcastState(newState);
+    setCurrentView('projector');
+  };
+
+  const handleUpdateLiveSession = (updates) => {
+    const newState = {
+      ...liveSessionState,
+      ...updates,
+      lastUpdated: Date.now()
+    };
+    broadcastState(newState);
+  };
+
+  const handleStopLiveSession = () => {
+    const newState = {
+      ...liveSessionState,
+      isActive: false,
+      isLive: false,
+      lastUpdated: Date.now()
+    };
+    broadcastState(newState);
+    setCurrentView('teacher_dashboard');
+  };
+
+  const handleSubmitStudentQuestion = (questionText) => {
+    const newQuestion = {
+      id: Date.now(),
+      studentName: currentUser.name || 'Siswa',
+      text: questionText,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+
+    const updatedQuestions = [newQuestion, ...liveSessionState.questions];
+    const newState = {
+      ...liveSessionState,
+      questions: updatedQuestions,
+      lastUpdated: Date.now()
+    };
+    
+    setLiveSessionState(newState);
+    try {
+      localStorage.setItem('smarttka_live_session_state', JSON.stringify(newState));
+    } catch (e) {}
+
+    try {
+      const channel = new BroadcastChannel('smarttka_live_classroom');
+      channel.postMessage({
+        type: 'STUDENT_QUESTION',
+        question: newQuestion,
+        timestamp: Date.now()
+      });
+      channel.postMessage({
+        type: 'SYNC_SESSION',
+        payload: newState,
+        timestamp: Date.now()
+      });
+      channel.close();
+    } catch (e) {}
   };
 
   const handleOpenCheatSheet = () => {
@@ -117,12 +332,24 @@ export default function App() {
     );
   }
 
-  // 3. If in full screen Layar Proyektor mode, show dedicated ProjectorView
+  // 3. If in full screen Layar Proyektor mode, show dedicated ProjectorView (Teacher side)
   if (currentView === 'projector') {
     return (
       <ProjectorView
-        initialPreset={projectorPreset}
-        onExit={() => setCurrentView('teacher_dashboard')}
+        liveSession={liveSessionState}
+        onUpdateLiveSession={handleUpdateLiveSession}
+        onExit={handleStopLiveSession}
+      />
+    );
+  }
+
+  // 4. If in full screen Menyimak Presentasi Live mode (Student side)
+  if (currentView === 'student_live') {
+    return (
+      <StudentLiveView
+        liveSession={liveSessionState}
+        onExit={() => setCurrentView('dashboard')}
+        onSubmitQuestion={handleSubmitStudentQuestion}
       />
     );
   }
@@ -156,6 +383,8 @@ export default function App() {
               currentUser={currentUser}
               onStartTest={handleStartTest}
               onViewDiagnostic={handleViewDiagnostic}
+              liveSession={liveSessionState}
+              onJoinLiveSession={() => setCurrentView('student_live')}
             />
           )}
 
@@ -169,6 +398,7 @@ export default function App() {
               onStartCreateAssessment={handleStartCreateAssessment}
               onViewAnalytics={handleViewTeacherAnalytics}
               onOpenProjector={handleOpenProjector}
+              onStartLiveSession={handleStartLiveSession}
               onOpenCheatSheet={handleOpenCheatSheet}
               onPublishAssessment={handlePublishAssessment}
               assessmentsList={assessmentsList}
@@ -203,44 +433,129 @@ export default function App() {
           )}
 
           {currentView === 'diagnostic' && (
-            <div className="space-y-6">
-              <DiagnosticView
-                testResult={testResult}
-                assessment={selectedAssessment}
-                onBackToDashboard={() => setCurrentView(currentUser.role === 'student' ? 'dashboard' : 'teacher_dashboard')}
-                onRetakeTest={handleRetakeTest}
-              />
-
-              <RealWorldSandbox />
-            </div>
+            <DiagnosticView
+              testResult={testResult}
+              assessment={selectedAssessment}
+              onBackToDashboard={() => setCurrentView(currentUser.role === 'student' ? 'dashboard' : 'teacher_dashboard')}
+              onRetakeTest={handleRetakeTest}
+              onOpenSandbox={() => setCurrentView('sandbox')}
+            />
           )}
 
           {currentView === 'history' && (
             <div className="space-y-6 font-sans">
-              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs">
-                <h2 className="text-2xl font-black text-slate-900 mb-1">Daftar Rekap Nilai Siswa</h2>
-                <p className="text-sm text-slate-500 mb-6 font-medium">Catatan lengkap evaluasi pengerjaan siswa per kelas.</p>
-
-                <div className="space-y-3">
-                  {assessmentsList.map((asm) => (
-                    <div key={asm.id} className="p-4 sm:p-5 rounded-2xl border border-slate-200 flex items-center justify-between bg-slate-50/70">
-                      <div>
-                        <h4 className="font-extrabold text-base text-slate-900">{asm.title}</h4>
-                        <p className="text-xs text-slate-500 font-semibold mt-0.5">{asm.subject} • {asm.targetClass || 'Kelas 12 IPA 1'}</p>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="font-black text-lg text-emerald-700">{asm.studentProgress || '28/32 Siswa'}</span>
-                        <button
-                          onClick={() => handleViewTeacherAnalytics(asm)}
-                          className="px-4 py-2 rounded-xl bg-slate-900 text-white font-extrabold text-xs shadow-xs hover:bg-slate-800"
-                        >
-                          Lihat Analisis
-                        </button>
-                      </div>
+              {currentUser.role === 'student' ? (
+                /* STUDENT PERSONAL HISTORY VIEW */
+                <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-xs space-y-6">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-xs font-black uppercase">
+                        Progres Belajar Pribadi
+                      </span>
                     </div>
-                  ))}
+                    <h2 className="text-2xl font-black text-slate-900 mt-1">Riwayat & Hasil Asesmen Saya</h2>
+                    <p className="text-sm text-slate-500 font-medium">Catatan evaluasi nilai mandiri, skor KKM, dan grafik diagnosa kompetensi Anda.</p>
+                  </div>
+
+                  <div className="space-y-4">
+                    {[
+                      {
+                        id: 'asm-tka-01',
+                        title: 'Simulasi TKA Matematika Saintek 2026',
+                        subject: 'Matematika Saintek',
+                        date: '24 Sep 2026',
+                        score: 85,
+                        passingScore: 75,
+                        duration: '22 Menit',
+                        badge: 'Tuntas KKM'
+                      },
+                      {
+                        id: 'asm-tps-02',
+                        title: 'Tryout TPS - Penalaran Umum & Kuantitatif',
+                        subject: 'TPS Penalaran',
+                        date: '21 Sep 2026',
+                        score: 92,
+                        passingScore: 70,
+                        duration: '18 Menit',
+                        badge: 'Istimewa (A)'
+                      },
+                      {
+                        id: 'asm-hist-01',
+                        title: 'Simulasi TPS - Literasi Bahasa Indonesia',
+                        subject: 'Bahasa Indonesia',
+                        date: '18 Sep 2026',
+                        score: 88,
+                        passingScore: 75,
+                        duration: '25 Menit',
+                        badge: 'Tuntas KKM'
+                      }
+                    ].map((item) => (
+                      <div key={item.id} className="p-5 sm:p-6 rounded-2xl border border-slate-200 bg-slate-50/70 hover:bg-white hover:shadow-md transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="px-2.5 py-0.5 rounded-md bg-blue-100 text-blue-800 text-[10px] font-black uppercase">
+                              {item.subject}
+                            </span>
+                            <span className="text-xs font-semibold text-slate-400">
+                              Selesai: {item.date} • Durasi: {item.duration}
+                            </span>
+                          </div>
+                          <h4 className="font-black text-lg text-slate-900">{item.title}</h4>
+                          <p className="text-xs text-slate-500 font-medium">
+                            Target KKM: {item.passingScore} • Status: <strong className="text-emerald-700">{item.badge}</strong>
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-200">
+                          <div className="text-left sm:text-right">
+                            <div className="text-2xl font-black text-slate-900">
+                              {item.score} <span className="text-xs font-medium text-slate-400">/ 100</span>
+                            </div>
+                            <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-bold">
+                              ✓ Lulus Diagnostik
+                            </span>
+                          </div>
+
+                          <button
+                            onClick={() => handleViewDiagnostic(assessmentsList[0])}
+                            className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs shadow-xs transition-all active:scale-95"
+                          >
+                            Lihat Diagnostik Saya 📊
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                /* TEACHER CLASS-WIDE REKAP VIEW */
+                <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-6">
+                  <div>
+                    <h2 className="text-2xl font-black text-slate-900 mb-1">Daftar Rekap Nilai Siswa Per Kelas</h2>
+                    <p className="text-sm text-slate-500 font-medium">Catatan lengkap evaluasi dan progres pengerjaan seluruh siswa per kelas.</p>
+                  </div>
+
+                  <div className="space-y-3">
+                    {assessmentsList.map((asm) => (
+                      <div key={asm.id} className="p-4 sm:p-5 rounded-2xl border border-slate-200 flex items-center justify-between bg-slate-50/70 hover:bg-white transition-all">
+                        <div>
+                          <h4 className="font-extrabold text-base text-slate-900">{asm.title}</h4>
+                          <p className="text-xs text-slate-500 font-semibold mt-0.5">{asm.subject} • {asm.targetClass || 'Kelas 12 IPA 1'}</p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="font-black text-lg text-emerald-700">{asm.studentProgress || '28/32 Siswa'}</span>
+                          <button
+                            onClick={() => handleViewTeacherAnalytics(asm)}
+                            className="px-4 py-2 rounded-xl bg-slate-900 text-white font-extrabold text-xs shadow-xs hover:bg-slate-800"
+                          >
+                            Lihat Analisis Ujian
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </main>
