@@ -17,7 +17,8 @@ import {
   Share2,
   FileText,
   Rocket,
-  ArrowRight
+  ArrowRight,
+  ArrowUpRight
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import RadarChart from '../components/RadarChart';
@@ -395,10 +396,10 @@ export default function DiagnosticView({ testResult, assessment, onBackToDashboa
 
         <button
           onClick={onOpenSandbox}
-          className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs sm:text-sm transition-all shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2 shrink-0 active:scale-95"
+          className="inline-flex items-center justify-center px-6 py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs sm:text-sm transition-all shadow-lg shadow-emerald-500/20 shrink-0 active:scale-95 group cursor-pointer"
         >
           <span>Buka Lab Konsep Nyata 🧪</span>
-          <ArrowRight className="w-4 h-4" />
+          <ArrowUpRight className="w-4 h-4 ml-1.5 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" strokeWidth={2} />
         </button>
       </div>
 

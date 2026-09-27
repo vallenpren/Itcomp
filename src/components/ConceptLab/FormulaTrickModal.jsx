@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   X, 
   Lightbulb, 
@@ -10,104 +10,108 @@ import {
   Sparkles
 } from 'lucide-react';
 
+import FormattedFormula from '../FormattedFormula';
+
 export default function FormulaTrickModal({ isOpen, onClose, experiment }) {
   const [activeTab, setActiveTab] = useState('logika'); // 'logika' | 'langkah' | 'tips'
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen || !experiment) return null;
 
   const tricks = experiment.formulaTricks || getFallbackTricks(experiment);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fadeIn">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
       <div 
-        className="bg-white border border-slate-200 rounded-3xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] transition-all text-slate-900"
+        className="relative w-full max-w-xl max-h-[85vh] flex flex-col bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden font-sans"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* MODAL HEADER */}
-        <div className="p-5 sm:p-6 bg-gradient-to-r from-blue-600 via-indigo-600 to-teal-600 text-white flex items-start justify-between relative overflow-hidden shrink-0">
-          <div className="space-y-1 z-10 pr-6">
-            <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-300/30 text-[10px] font-extrabold uppercase tracking-wider flex items-center gap-1">
-                <Lightbulb className="w-3 h-3 text-amber-300" />
-                <span>Rahasia Rumus & Trik Soal</span>
-              </span>
-              <span className="text-[10px] font-mono text-blue-100 uppercase font-bold">
-                Eksperimen {experiment.id}
-              </span>
-            </div>
-
-            <h2 className="text-lg sm:text-xl font-black tracking-tight text-white">
-              Bongkar Rahasia Rumus & Trik Mengerjakan 💡
-            </h2>
-            <p className="text-xs text-blue-100 font-medium line-clamp-1">
-              {experiment.title}
-            </p>
+        {/* STICKY HEADER */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-white shrink-0">
+          <div>
+            <h3 className="text-lg font-bold text-slate-900">Bongkar Rahasia Rumus &amp; Trik 💡</h3>
+            <p className="text-xs text-slate-500">Eksperimen {experiment.id}: {experiment.title}</p>
           </div>
-
-          <button
+          <button 
             onClick={onClose}
-            className="p-2 rounded-2xl bg-white/10 hover:bg-white/20 text-white transition-colors shrink-0 z-10"
-            title="Tutup Modal"
+            className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+            aria-label="Tutup modal"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* FORMULA CARD BANNER */}
-        <div className="p-4 bg-slate-50 border-b border-slate-200 text-slate-800 font-mono text-xs flex items-center justify-between gap-3 shrink-0">
-          <div className="flex items-center gap-2 overflow-x-auto py-1">
-            <span className="text-slate-500 font-bold text-[10px] uppercase tracking-wider shrink-0 font-sans">Formula Utama:</span>
-            <span className="bg-white border border-slate-200 px-3 py-1.5 rounded-xl font-extrabold text-blue-700 tracking-wide text-xs sm:text-sm shadow-xs">
-              {experiment.formula}
-            </span>
-          </div>
-        </div>
-
-        {/* TAB NAVIGATION BAR */}
-        <div className="flex border-b border-slate-200 bg-slate-100 p-1.5 gap-1 shrink-0">
-          <button
-            onClick={() => setActiveTab('logika')}
-            className={`flex-1 py-2.5 px-3 rounded-2xl text-xs font-extrabold transition-all flex items-center justify-center gap-2 ${
-              activeTab === 'logika'
-                ? 'bg-white text-blue-700 shadow-xs border border-slate-200'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <Brain className="w-4 h-4 text-blue-600" />
-            <span>Tab 1: Logika Rumus</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('langkah')}
-            className={`flex-1 py-2.5 px-3 rounded-2xl text-xs font-extrabold transition-all flex items-center justify-center gap-2 ${
-              activeTab === 'langkah'
-                ? 'bg-white text-blue-700 shadow-xs border border-slate-200'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <Target className="w-4 h-4 text-teal-600" />
-            <span>Tab 2: 3 Langkah Mudah</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('tips')}
-            className={`flex-1 py-2.5 px-3 rounded-2xl text-xs font-extrabold transition-all flex items-center justify-center gap-2 ${
-              activeTab === 'tips'
-                ? 'bg-white text-blue-700 shadow-xs border border-slate-200'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <Sparkles className="w-4 h-4 text-amber-500" />
-            <span>Tab 3: Tips & Trik Ujian</span>
-          </button>
-        </div>
-
-        {/* MODAL CONTENT BODY */}
-        <div className="p-6 overflow-y-auto space-y-4 text-slate-800 flex-1">
+        {/* SINGLE SCROLL CONTAINER (Box Rumus + Tab Nav + Content All Flow Naturally) */}
+        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-5 pb-6 text-slate-800">
           
-          {/* TAB 1: LOGIKA RUMUS */}
+          {/* 1. FORMULA CARD BANNER */}
+          <FormattedFormula
+            math={experiment.formula}
+            label={`Formula Utama Eksperimen ${experiment.id}`}
+            explanation={experiment.title}
+            variables={tricks.symbolBreakdown?.map(item => ({
+              symbol: item.symbol,
+              label: item.name || item.meaning
+            })) || []}
+            accentColor="indigo"
+          />
+
+          {/* 2. TAB NAVIGATION BAR (Static inside Scroll Container) */}
+          <div className="flex border border-slate-200 bg-slate-100 p-1.5 gap-1 rounded-2xl">
+            <button
+              type="button"
+              onClick={() => setActiveTab('logika')}
+              className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                activeTab === 'logika'
+                  ? 'bg-white text-blue-700 shadow-xs border border-slate-200'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Brain className="w-4 h-4 text-blue-600" />
+              <span>Tab 1: Logika Rumus</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('langkah')}
+              className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                activeTab === 'langkah'
+                  ? 'bg-white text-blue-700 shadow-xs border border-slate-200'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Target className="w-4 h-4 text-teal-600" />
+              <span>Tab 2: 3 Langkah</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('tips')}
+              className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                activeTab === 'tips'
+                  ? 'bg-white text-blue-700 shadow-xs border border-slate-200'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Sparkles className="w-4 h-4 text-amber-500" />
+              <span>Tab 3: Tips &amp; Trik</span>
+            </button>
+          </div>
+
+          {/* 3. TAB EXPLANATION CONTENTS */}
           {activeTab === 'logika' && (
-            <div className="space-y-4 animate-fadeIn">
+            <div className="space-y-4">
               <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200 space-y-2">
                 <div className="flex items-center gap-2 text-xs font-extrabold uppercase text-blue-700 tracking-wider">
                   <Brain className="w-4.5 h-4.5 text-blue-600" />
@@ -138,99 +142,72 @@ export default function FormulaTrickModal({ isOpen, onClose, experiment }) {
                   ))}
                 </div>
               </div>
+
             </div>
           )}
 
-          {/* TAB 2: 3 LANGKAH MUDAH MENGERJAKAN */}
           {activeTab === 'langkah' && (
-            <div className="space-y-4 animate-fadeIn">
-              <div className="p-3.5 rounded-2xl bg-teal-50 border border-teal-200 text-xs text-teal-800 font-medium">
-                🎯 <strong>Prinsip 3 Langkah Anti-Gagal:</strong> Selalu ikuti urutan ini saat mengerjakan soal ujian agar tidak terjebak kebingungan rumus!
+            <div className="space-y-3">
+              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-start gap-3">
+                <div className="w-7 h-7 rounded-xl bg-teal-600 text-white font-extrabold text-xs flex items-center justify-center shrink-0">
+                  1
+                </div>
+                <div>
+                  <h4 className="text-xs font-extrabold text-slate-900">{tricks.step1Title}</h4>
+                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">{tricks.step1Desc}</p>
+                </div>
               </div>
 
-              <div className="space-y-3">
-                {/* Step 1 */}
-                <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-start gap-3.5">
-                  <div className="w-8 h-8 rounded-xl bg-blue-600 text-white font-black text-sm flex items-center justify-center shrink-0 shadow-xs">
-                    1
-                  </div>
-                  <div className="space-y-1">
-                    <h4 className="text-xs sm:text-sm font-extrabold text-slate-900">
-                      {tricks.step1Title || "Identifikasi Diketahui & Ditanya (Pisahkan Variabel)"}
-                    </h4>
-                    <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                      {tricks.step1Desc}
-                    </p>
-                  </div>
+              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-start gap-3">
+                <div className="w-7 h-7 rounded-xl bg-teal-600 text-white font-extrabold text-xs flex items-center justify-center shrink-0">
+                  2
                 </div>
-
-                {/* Step 2 */}
-                <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-start gap-3.5">
-                  <div className="w-8 h-8 rounded-xl bg-teal-600 text-white font-black text-sm flex items-center justify-center shrink-0 shadow-xs">
-                    2
-                  </div>
-                  <div className="space-y-1">
-                    <h4 className="text-xs sm:text-sm font-extrabold text-slate-900">
-                      {tricks.step2Title || "Masukkan Angka ke Rumus Dasar Sederhana"}
-                    </h4>
-                    <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                      {tricks.step2Desc}
-                    </p>
-                  </div>
+                <div>
+                  <h4 className="text-xs font-extrabold text-slate-900">{tricks.step2Title}</h4>
+                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">{tricks.step2Desc}</p>
                 </div>
+              </div>
 
-                {/* Step 3 */}
-                <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-start gap-3.5">
-                  <div className="w-8 h-8 rounded-xl bg-amber-500 text-slate-950 font-black text-sm flex items-center justify-center shrink-0 shadow-xs">
-                    3
-                  </div>
-                  <div className="space-y-1">
-                    <h4 className="text-xs sm:text-sm font-extrabold text-slate-900">
-                      {tricks.step3Title || "Cek Ke-Logisan Hasil Secara Sains/Matematika"}
-                    </h4>
-                    <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                      {tricks.step3Desc}
-                    </p>
-                  </div>
+              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-start gap-3">
+                <div className="w-7 h-7 rounded-xl bg-teal-600 text-white font-extrabold text-xs flex items-center justify-center shrink-0">
+                  3
+                </div>
+                <div>
+                  <h4 className="text-xs font-extrabold text-slate-900">{tricks.step3Title}</h4>
+                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">{tricks.step3Desc}</p>
                 </div>
               </div>
             </div>
           )}
 
-          {/* TAB 3: TIPS & TRIK KILAT UJIAN */}
           {activeTab === 'tips' && (
-            <div className="space-y-4 animate-fadeIn">
-              
-              {/* Jebakan Batman Box */}
-              <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 space-y-2">
-                <div className="flex items-center gap-2 text-xs font-extrabold uppercase text-rose-700 tracking-wider">
-                  <AlertTriangle className="w-4 h-4 text-rose-600" />
-                  <span>🦇 Jebakan Batman Soal Ujian (Hati-hati!)</span>
+            <div className="space-y-3">
+              <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 space-y-1.5">
+                <div className="flex items-center gap-2 text-xs font-extrabold text-amber-800 uppercase tracking-wider">
+                  <AlertTriangle className="w-4 h-4 text-amber-600" />
+                  <span>Jebakan Batman Yang Sering Bikin Salah:</span>
                 </div>
-                <p className="text-xs text-slate-700 leading-relaxed font-medium">
+                <p className="text-xs text-amber-900 font-medium leading-relaxed">
                   {tricks.jebakanBatman}
                 </p>
               </div>
 
-              {/* Trik Cepat Menalar Box */}
-              <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 space-y-2">
-                <div className="flex items-center gap-2 text-xs font-extrabold uppercase text-amber-800 tracking-wider">
-                  <Zap className="w-4 h-4 text-amber-500" />
-                  <span>⚡ Trik Cepat Menalar (Tanpa Hitung Panjang)</span>
+              <div className="p-4 rounded-2xl bg-indigo-50 border border-indigo-200 space-y-1.5">
+                <div className="flex items-center gap-2 text-xs font-extrabold text-indigo-800 uppercase tracking-wider">
+                  <Zap className="w-4 h-4 text-indigo-600" />
+                  <span>Trik Menalar Cepat Tanpa Hitung Rumit:</span>
                 </div>
-                <p className="text-xs text-slate-700 leading-relaxed font-medium">
+                <p className="text-xs text-indigo-900 font-medium leading-relaxed">
                   {tricks.trikMenalar}
                 </p>
               </div>
 
-              {/* Contoh Soal Singkat */}
               {tricks.contohSoal && (
-                <div className="p-4 rounded-2xl bg-slate-50 text-slate-900 space-y-2 font-mono border border-slate-200">
-                  <div className="flex items-center gap-2 text-xs font-bold text-blue-700 uppercase tracking-wider font-sans">
-                    <BookOpen className="w-4 h-4 text-blue-600" />
-                    <span>Contoh Penerapan Kilat:</span>
-                  </div>
-                  <p className="text-xs text-slate-700 font-sans">
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                  <h4 className="text-xs font-extrabold text-slate-500 uppercase tracking-wider">
+                    Contoh Soal TKA &amp; Solusi Logis:
+                  </h4>
+                  <p className="text-xs text-slate-800 font-medium">
                     <strong>Soal:</strong> {tricks.contohSoal.q}
                   </p>
                   <div className="p-2.5 rounded-xl bg-white text-blue-700 text-xs border border-slate-200 font-sans">
@@ -244,14 +221,11 @@ export default function FormulaTrickModal({ isOpen, onClose, experiment }) {
 
         </div>
 
-        {/* MODAL FOOTER */}
-        <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between shrink-0">
-          <span className="text-[11px] text-slate-500 font-medium">
-            SmartTKA EdTech Lab • Rumus Presisi
-          </span>
+        {/* STICKY FOOTER */}
+        <div className="px-6 py-3.5 border-t border-slate-100 bg-white shrink-0 flex items-center justify-end">
           <button
             onClick={onClose}
-            className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold transition-all shadow-sm active:scale-95"
+            className="px-5 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs cursor-pointer"
           >
             Paham, Siap Praktikkan! 👍
           </button>

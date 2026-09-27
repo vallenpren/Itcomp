@@ -16,7 +16,8 @@ import {
   ChevronDown,
   Monitor,
   Send,
-  Compass
+  Compass,
+  ArrowUpRight
 } from 'lucide-react';
 import { MOCK_ASSESSMENTS } from '../data/mockData';
 import QuickPracticeModal from '../components/QuickPracticeModal';
@@ -67,9 +68,9 @@ export default function TeacherDashboard({
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="px-5 py-3 rounded-2xl bg-teal-50 border border-teal-200 text-teal-800 text-sm font-extrabold flex items-center gap-2">
-            <Users className="w-5 h-5 text-teal-600" />
-            <span>5 Kelas Aktif • 127 Siswa Terdaftar</span>
+          <div className="px-5 py-3 rounded-2xl bg-slate-50 border border-slate-200/80 text-slate-800 text-sm font-bold flex items-center gap-2">
+            <Users className="w-5 h-5 text-indigo-600" />
+            <span className="tabular-nums">5 Kelas Aktif • 127 Siswa Terdaftar</span>
           </div>
         </div>
       </div>
@@ -237,7 +238,7 @@ export default function TeacherDashboard({
 
                 <div className="mt-4 p-3 rounded-2xl bg-white border border-slate-200 flex justify-between text-xs font-bold">
                   <span className="text-slate-600">Siswa Sudah Mengumpulkan:</span>
-                  <span className="text-blue-700 font-extrabold">{asm.studentProgress || '28/32 Siswa'}</span>
+                  <span className="text-blue-700 font-bold tabular-nums">{asm.studentProgress || '28/32 Siswa'}</span>
                 </div>
               </div>
 
@@ -248,10 +249,10 @@ export default function TeacherDashboard({
 
                 <button
                   onClick={() => onViewAnalytics(asm)}
-                  className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs flex items-center gap-2"
+                  className="inline-flex items-center justify-center px-4 py-2 text-xs font-medium text-white bg-slate-900 hover:bg-slate-800 active:scale-[0.98] rounded-xl shadow-xs transition-all group cursor-pointer"
                 >
                   <span>Lihat Rekap Nilai</span>
-                  <ArrowRight className="w-4 h-4 text-emerald-400" />
+                  <ArrowUpRight className="w-4 h-4 ml-1.5 text-emerald-400 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" strokeWidth={2} />
                 </button>
               </div>
             </div>

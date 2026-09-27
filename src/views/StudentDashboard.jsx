@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Play, 
   Clock, 
@@ -30,6 +30,134 @@ export default function StudentDashboard({
   const [activeTab, setActiveTab] = useState('all'); // 'all', 'active', 'completed'
   const [searchQuery, setSearchQuery] = useState('');
 
+  const [sessionTargetClass, setSessionTargetClass] = useState({ id: 'MIPA-1', name: 'XII MIPA 1' });
+
+  // 1. PERSISTENT & REACTIVE LIVE PRESENTATION STATE FOR STUDENT
+  const [isLiveSession, setIsLiveSession] = useState(() => {
+    if (liveSession?.isActive === true || liveSession?.isLive === true) return true;
+    try {
+      const savedSession = localStorage.getItem('smarttka_live_session');
+      if (savedSession) {
+        const parsed = JSON.parse(savedSession);
+        if (parsed.targetClassId) {
+          setSessionTargetClass({ id: parsed.targetClassId, name: parsed.targetClassName || 'XII MIPA 1' });
+        }
+        if (parsed.isLive === true) return true;
+      }
+      const savedState = localStorage.getItem('smarttka_live_session_state');
+      if (savedState) {
+        const parsedState = JSON.parse(savedState);
+        if (parsedState.targetClassId) {
+          setSessionTargetClass({ id: parsedState.targetClassId, name: parsedState.targetClassName || 'XII MIPA 1' });
+        }
+        if (parsedState.isActive === true) return true;
+      }
+    } catch (e) {}
+    return false;
+  });
+
+  // 2. REAKTIF DUAL LISTENER IN EFFECT
+  useEffect(() => {
+    // A. Initial Mount Check
+    const checkActiveLive = () => {
+      try {
+        const cached = localStorage.getItem('lesttry_live_presentation_state') || localStorage.getItem('smarttka_active_live_payload');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed.targetClassId) {
+            setSessionTargetClass({ id: parsed.targetClassId, name: parsed.targetClassName || 'XII MIPA 1' });
+          }
+          if (parsed.isLive !== false) {
+            setIsLiveSession(true);
+            return;
+          }
+        }
+        const savedSession = localStorage.getItem('smarttka_live_session_state');
+        if (savedSession) {
+          const parsed = JSON.parse(savedSession);
+          if (parsed.targetClassId) {
+            setSessionTargetClass({ id: parsed.targetClassId, name: parsed.targetClassName || 'XII MIPA 1' });
+          }
+          if (parsed.isActive === true || parsed.isLive === true) {
+            setIsLiveSession(true);
+            return;
+          }
+        }
+      } catch (e) {}
+    };
+
+    checkActiveLive();
+
+    // B. BroadcastChannel Listeners
+    let lesttryChannel, streamChannel, classroomChannel;
+    try {
+      lesttryChannel = new BroadcastChannel('lesttry_presentation_sync');
+      lesttryChannel.onmessage = (event) => {
+        const data = event.data;
+        if (!data) return;
+        if (data.targetClassId) {
+          setSessionTargetClass({ id: data.targetClassId, name: data.targetClassName || 'XII MIPA 1' });
+        }
+        if (data.type === 'LESTTRY_SLIDE_UPDATE' || data.isLive === true) {
+          setIsLiveSession(true);
+        }
+        if (data.type === 'LESTTRY_STOP_PRESENTATION' || data.isLive === false) {
+          setIsLiveSession(false);
+        }
+      };
+
+      streamChannel = new BroadcastChannel('smarttka_live_stream');
+      streamChannel.onmessage = (event) => {
+        const data = event.data;
+        if (!data) return;
+        const targetId = data.targetClassId;
+        const targetName = data.targetClassName;
+        if (targetId) {
+          setSessionTargetClass({ id: targetId, name: targetName || 'XII MIPA 1' });
+        }
+
+        if (data.type === 'LESTTRY_SLIDE_UPDATE' || data.type === 'SYNC_PRESENTATION_STATE' || data.type === 'SLIDE_CHANGE' || data.isLive === true) {
+          setIsLiveSession(true);
+        }
+        if (data.type === 'LESTTRY_STOP_PRESENTATION' || data.type === 'END_PRESENTATION' || data.isLive === false) {
+          setIsLiveSession(false);
+        }
+      };
+
+      classroomChannel = new BroadcastChannel('smarttka_live_classroom');
+      classroomChannel.onmessage = (event) => {
+        if (event.data?.type === 'TEACHER_START_PRESENTATION' || event.data?.isLive === true) {
+          setIsLiveSession(true);
+        }
+        if (event.data?.type === 'TEACHER_STOP_PRESENTATION' || event.data?.isLive === false) {
+          setIsLiveSession(false);
+        }
+      };
+    } catch (e) {}
+
+    // C. Window Storage Listener
+    const handleStorageChange = (e) => {
+      if (e.key === 'lesttry_live_presentation_state' || e.key === 'smarttka_active_live_payload' || e.key === 'smarttka_live_session_state') {
+        checkActiveLive();
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      if (lesttryChannel) lesttryChannel.close();
+      if (streamChannel) streamChannel.close();
+      if (classroomChannel) classroomChannel.close();
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
+  // Sync prop changes if available
+  useEffect(() => {
+    if (liveSession?.isActive !== undefined || liveSession?.isLive !== undefined) {
+      setIsLiveSession(liveSession.isActive === true || liveSession.isLive === true);
+    }
+  }, [liveSession?.isActive, liveSession?.isLive]);
+
   const activeAssessments = MOCK_ASSESSMENTS.filter(a => a.status === 'active');
   const completedAssessments = MOCK_ASSESSMENTS.filter(a => a.status === 'completed');
 
@@ -40,41 +168,40 @@ export default function StudentDashboard({
     return matchesTab && matchesSearch;
   });
 
+  const liveTargetClassName = liveSession?.targetClassName || sessionTargetClass.name || 'XII MIPA 1';
+
   return (
     <div className="space-y-6 pb-20 md:pb-6 font-sans">
       
-      {/* ACTIVE LIVE PRESENTATION BANNER FOR STUDENT SIDE */}
-      {(liveSession?.isActive ?? false) && (liveSession?.isLive !== false) && (
-        <div className="p-5 rounded-3xl bg-gradient-to-r from-indigo-900 via-slate-900 to-indigo-950 text-white border-2 border-indigo-500/40 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 animate-fade-in">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-lg shadow-indigo-600/30">
+      {/* 3. TAMPILAN BANNER / TOMBOL DI LAYAR SISWA */}
+      {isLiveSession && (
+        <div className="mb-6 p-4.5 bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-100 border-2 border-blue-500/40 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md animate-fade-in">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-blue-500/30">
               <Tv className="w-6 h-6 animate-pulse" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="px-2.5 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 text-[10px] font-black uppercase flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-                  🔴 SESI MENGAJAR AKTIF
+              <div className="flex items-center gap-2 mb-0.5">
+                <span className="px-2.5 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-black uppercase tracking-wider flex items-center gap-1 shadow-xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+                  SIARAN GURU AKTIF
                 </span>
-                <span className="text-xs font-bold text-slate-300">
-                  Kode Kelas: <strong className="text-emerald-400 font-mono">TKA-12IPA1</strong>
+                <span className="text-xs font-bold text-blue-900 bg-white/80 px-2 py-0.5 rounded-md border border-blue-200">
+                  Ruang: {liveTargetClassName}
                 </span>
               </div>
-              <h3 className="text-base sm:text-lg font-black text-white mt-1">
-                Ibu/Bapak Guru sedang menayangkan materi kelas.
-              </h3>
-              <p className="text-xs text-slate-300 font-medium">
-                Cerminan layar proyektor real-time dapat disimak langsung di layar HP Anda.
-              </p>
+              <h4 className="text-base font-extrabold text-slate-900">
+                Pak Budi Hartono Sedang Mempresentasikan Materi Live
+              </h4>
+              <p className="text-xs text-slate-600 font-medium">Layar proyektor simulasi aktif secara real-time. Ketuk untuk menyimak bersama.</p>
             </div>
           </div>
-
-          <button
+          <button 
             onClick={onJoinLiveSession}
-            className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm transition-all shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2 shrink-0 active:scale-95"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 text-xs font-black text-white bg-blue-600 hover:bg-blue-700 active:scale-[0.98] rounded-xl shadow-md shadow-blue-600/25 transition-all cursor-pointer shrink-0"
           >
-            <span>Ketuk untuk Menyimak Live 📱</span>
-            <ArrowRight className="w-4 h-4" />
+            <Tv className="w-4 h-4" />
+            <span>Simak Presentasi Proyektor ↗</span>
           </button>
         </div>
       )}
@@ -99,7 +226,7 @@ export default function StudentDashboard({
           <div className="mt-5 flex flex-wrap gap-3">
             <button
               onClick={() => onStartTest(MOCK_ASSESSMENTS[0])}
-              className="px-4 py-2.5 rounded-xl bg-white text-blue-700 hover:bg-blue-50 font-bold text-xs sm:text-sm transition-all shadow-md flex items-center gap-2"
+              className="px-4 py-2.5 rounded-xl bg-white text-blue-700 hover:bg-blue-50 font-bold text-xs sm:text-sm transition-all shadow-md flex items-center gap-2 cursor-pointer"
             >
               <Play className="w-4 h-4 fill-blue-700" />
               <span>Mulai Simulasi Utama (TKA Matematika)</span>
@@ -107,7 +234,7 @@ export default function StudentDashboard({
 
             <button
               onClick={() => onViewDiagnostic(completedAssessments[0])}
-              className="px-4 py-2.5 rounded-xl bg-blue-600/60 hover:bg-blue-600 text-white font-semibold text-xs sm:text-sm transition-all border border-white/20 flex items-center gap-2"
+              className="px-4 py-2.5 rounded-xl bg-blue-600/60 hover:bg-blue-600 text-white font-semibold text-xs sm:text-sm transition-all border border-white/20 flex items-center gap-2 cursor-pointer"
             >
               <BarChart3 className="w-4 h-4" />
               <span>Lihat Diagnostik Terakhir</span>
@@ -126,7 +253,7 @@ export default function StudentDashboard({
               <BookOpen className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-extrabold text-slate-900">{activeAssessments.length}</p>
+          <p className="text-2xl font-black text-slate-900 tabular-nums">{activeAssessments.length}</p>
           <p className="text-[11px] text-teal-600 font-semibold mt-1">Siap dikerjakan</p>
         </div>
 
@@ -137,7 +264,7 @@ export default function StudentDashboard({
               <CheckCircle2 className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-extrabold text-slate-900">{completedAssessments.length}</p>
+          <p className="text-2xl font-black text-slate-900 tabular-nums">{completedAssessments.length}</p>
           <p className="text-[11px] text-slate-500 font-medium mt-1">Total evaluasi</p>
         </div>
 
@@ -193,7 +320,7 @@ export default function StudentDashboard({
         <div className="flex border-b border-slate-200 gap-6 text-xs font-bold">
           <button
             onClick={() => setActiveTab('all')}
-            className={`pb-3 transition-colors relative ${
+            className={`pb-3 transition-colors relative cursor-pointer ${
               activeTab === 'all' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'
             }`}
           >
@@ -203,7 +330,7 @@ export default function StudentDashboard({
 
           <button
             onClick={() => setActiveTab('active')}
-            className={`pb-3 transition-colors relative ${
+            className={`pb-3 transition-colors relative cursor-pointer ${
               activeTab === 'active' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'
             }`}
           >
@@ -213,7 +340,7 @@ export default function StudentDashboard({
 
           <button
             onClick={() => setActiveTab('completed')}
-            className={`pb-3 transition-colors relative ${
+            className={`pb-3 transition-colors relative cursor-pointer ${
               activeTab === 'completed' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'
             }`}
           >
@@ -281,7 +408,7 @@ export default function StudentDashboard({
 
                     <button
                       onClick={() => onStartTest(assessment)}
-                      className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition-all shadow-md shadow-blue-600/20 flex items-center justify-center gap-2 group-hover:scale-[1.01]"
+                      className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition-all shadow-md shadow-blue-600/20 flex items-center justify-center gap-2 group-hover:scale-[1.01] cursor-pointer"
                     >
                       <Play className="w-3.5 h-3.5 fill-white" />
                       <span>Mulai Ujian</span>
@@ -303,11 +430,11 @@ export default function StudentDashboard({
 
                     <button
                       onClick={() => onViewDiagnostic(assessment)}
-                      className="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition-all flex items-center justify-center gap-2"
+                      className="inline-flex items-center justify-center w-full px-4 py-2.5 text-xs font-medium text-white bg-slate-900 hover:bg-slate-800 active:scale-[0.98] rounded-xl shadow-xs transition-all group cursor-pointer"
                     >
-                      <BarChart3 className="w-3.5 h-3.5 text-teal-400" />
+                      <BarChart3 className="w-3.5 h-3.5 text-teal-400 mr-1.5" />
                       <span>Lihat Diagnostik</span>
-                      <ArrowUpRight className="w-3.5 h-3.5 opacity-70" />
+                      <ArrowUpRight className="w-4 h-4 ml-1.5 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" strokeWidth={2} />
                     </button>
                   </div>
                 )}

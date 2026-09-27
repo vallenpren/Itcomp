@@ -51,39 +51,51 @@ export default function LoginView({ onLogin }) {
         <div className="bg-white rounded-2xl border border-slate-200 shadow-xl shadow-slate-200/50 p-6 sm:p-8">
           
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-bold text-slate-900">Masuk Akun</h2>
-            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-              Prototipe V1.0
+            <h2 className="text-lg font-extrabold text-slate-900 tracking-tight">Masuk Akun</h2>
+            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200/60">
+              Akses Masuk
             </span>
           </div>
 
-          {/* Quick Demo Access Box (HIGHLIGHTED REQUIREMENTS) */}
-          <div className="mb-6 p-4 rounded-xl bg-gradient-to-br from-blue-50/80 via-slate-50 to-teal-50/50 border border-blue-100">
+          {/* Quick Demo Access Box */}
+          <div className="mb-6 p-4 rounded-2xl bg-gradient-to-br from-slate-50 to-blue-50/50 border border-slate-200">
             <div className="flex items-center gap-1.5 text-blue-700 text-xs font-bold uppercase tracking-wider mb-2">
               <Sparkles className="w-4 h-4 text-amber-500 fill-amber-400" />
-              <span>Akses Cepat Demo</span>
+              <span>Akses Instan Demo Hackathon (Split-Screen)</span>
             </div>
-            <p className="text-xs text-slate-600 mb-3">
-              Pilih salah satu tombol di bawah untuk masuk secara instan tanpa perlu mengetik:
+            <p className="text-xs text-slate-600 mb-3 font-medium">
+              Satu klik untuk uji coba sinkronisasi dua layar (Guru &amp; Siswa) tanpa mengetik:
             </p>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div className="flex flex-col gap-2.5">
               <button
                 type="button"
-                onClick={() => handleQuickDemo(MOCK_USERS.student)}
-                className="flex items-center justify-center gap-2 p-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-all shadow-md shadow-blue-600/20 active:scale-98"
+                onClick={() => handleQuickDemo(MOCK_USERS.teacher)}
+                className="w-full inline-flex items-center justify-between p-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition-all shadow-md shadow-slate-900/20 active:scale-[0.98] group cursor-pointer"
               >
-                <UserCheck className="w-4 h-4" />
-                <span>Masuk sbg Siswa</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-base">👨‍🏫</span>
+                  <div className="text-left">
+                    <div className="font-extrabold text-white">Masuk Instan Mode Guru</div>
+                    <div className="text-[10px] text-teal-400 font-medium">Pak Budi Hartono • Room Active: TKA-882</div>
+                  </div>
+                </div>
+                <ArrowRight className="w-4 h-4 text-teal-400 transition-transform group-hover:translate-x-1" />
               </button>
 
               <button
                 type="button"
-                onClick={() => handleQuickDemo(MOCK_USERS.teacher)}
-                className="flex items-center justify-center gap-2 p-3 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-semibold text-xs transition-all shadow-md shadow-slate-800/20 active:scale-98"
+                onClick={() => handleQuickDemo(MOCK_USERS.student)}
+                className="w-full inline-flex items-center justify-between p-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition-all shadow-md shadow-blue-600/20 active:scale-[0.98] group cursor-pointer"
               >
-                <UserCheck className="w-4 h-4 text-teal-400" />
-                <span>Masuk sbg Guru</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-base">📱</span>
+                  <div className="text-left">
+                    <div className="font-extrabold text-white">Masuk Instan Mode Siswa</div>
+                    <div className="text-[10px] text-blue-100 font-medium">Ahmad Dani • Connect: TKA-882</div>
+                  </div>
+                </div>
+                <ArrowRight className="w-4 h-4 text-white transition-transform group-hover:translate-x-1" />
               </button>
             </div>
           </div>

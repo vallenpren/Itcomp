@@ -25,6 +25,8 @@ import ChemistryVisualizer from './ConceptLab/ChemistryVisualizer';
 import BiologyVisualizer from './ConceptLab/BiologyVisualizer';
 import EconomyVisualizer from './ConceptLab/EconomyVisualizer';
 import InformaticsVisualizer from './ConceptLab/InformaticsVisualizer';
+import SimulationErrorBoundary from './ConceptLab/SimulationErrorBoundary';
+import FormattedFormula from './FormattedFormula';
 import { EXPERIMENTS_DATA } from '../data/conceptLabData';
 
 const MOCK_BUILTIN_SLIDES = [
@@ -76,29 +78,261 @@ export default function StudentLiveView({
   const [questionText, setQuestionText] = useState('');
   const [submittedSuccess, setSubmittedSuccess] = useState(false);
   const [showEndedToast, setShowEndedToast] = useState(false);
+  const [demoActiveOverride, setDemoActiveOverride] = useState(false);
 
   const studentScrollContainerRef = useRef(null);
 
-  // Check if live session is currently active
-  const isSessionLive = (liveSession?.isActive ?? true) && (liveSession?.isLive !== false);
+  // Requirement 2B: State Single Source of Truth
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(() => {
+    try {
+      const cached = localStorage.getItem('lesttry_live_presentation_state') || localStorage.getItem('smarttka_active_live_payload');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed.currentSlideIndex !== undefined) return parsed.currentSlideIndex;
+        if (parsed.currentSlide !== undefined) return parsed.currentSlide;
+      }
+    } catch (e) {}
+    return liveSession?.currentSlideIndex ?? 0;
+  });
 
-  // Toast notification if session was active then ended
+  const [currentSlideData, setCurrentSlideData] = useState(() => {
+    try {
+      const cached = localStorage.getItem('lesttry_live_presentation_state') || localStorage.getItem('smarttka_active_live_payload');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed.slideData) return parsed.slideData;
+        if (parsed.slidesData && parsed.currentSlide !== undefined) {
+          return parsed.slidesData[parsed.currentSlide] || parsed.slidesData[0];
+        }
+      }
+    } catch (e) {}
+    return (liveSession?.slides && liveSession.slides[0]) ? liveSession.slides[0] : MOCK_BUILTIN_SLIDES[0];
+  });
+
+  const [totalSlides, setTotalSlides] = useState(() => {
+    try {
+      const cached = localStorage.getItem('lesttry_live_presentation_state') || localStorage.getItem('smarttka_active_live_payload');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed.totalSlides) return parsed.totalSlides;
+      }
+    } catch (e) {}
+    return liveSession?.totalSlides || liveSession?.slides?.length || 1;
+  });
+
+  // Default isLiveActive to true so student is never trapped in fallback screen
+  const [isLiveActive, setIsLiveActive] = useState(() => {
+    try {
+      const cached = localStorage.getItem('lesttry_live_presentation_state') || localStorage.getItem('smarttka_active_live_payload');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed.isLive !== undefined) return parsed.isLive;
+      }
+    } catch (e) {}
+    return true;
+  });
+
+  const [activePresentationFile, setActivePresentationFile] = useState(() => {
+    try {
+      const cached = localStorage.getItem('lesttry_live_presentation_state') || localStorage.getItem('smarttka_active_live_payload');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed.fileUrl !== undefined) return parsed.fileUrl;
+      }
+    } catch (e) {}
+    return liveSession?.fileUrl || null;
+  });
+
+  const [fileType, setFileType] = useState(() => {
+    try {
+      const cached = localStorage.getItem('lesttry_live_presentation_state') || localStorage.getItem('smarttka_active_live_payload');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed.fileType) return parsed.fileType;
+      }
+    } catch (e) {}
+    return liveSession?.fileType || 'mock';
+  });
+
+  const [activeTopic, setActiveTopic] = useState(() => {
+    try {
+      const cached = localStorage.getItem('lesttry_live_presentation_state') || localStorage.getItem('smarttka_active_live_payload');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed.topicTitle) return parsed.topicTitle;
+      }
+    } catch (e) {}
+    return liveSession?.pptFileName || 'Analisis Konsep Nyata & Perumusan';
+  });
+
+  const [slidesData, setSlidesData] = useState(() => {
+    try {
+      const cached = localStorage.getItem('lesttry_live_presentation_state') || localStorage.getItem('smarttka_active_live_payload');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed.slidesData && parsed.slidesData.length > 0) return parsed.slidesData;
+      }
+    } catch (e) {}
+    return (liveSession?.slides && liveSession.slides.length > 0) ? liveSession.slides : MOCK_BUILTIN_SLIDES;
+  });
+
+  const [liveMode, setLiveMode] = useState(() => {
+    try {
+      const cached = localStorage.getItem('lesttry_live_presentation_state') || localStorage.getItem('smarttka_active_live_payload');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed.mode) return parsed.mode;
+      }
+    } catch (e) {}
+    return liveSession?.mode || 'ppt';
+  });
+
+  const [activeExpId, setActiveExpId] = useState(() => {
+    try {
+      const cached = localStorage.getItem('lesttry_live_presentation_state') || localStorage.getItem('smarttka_active_live_payload');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed.experimentId) return parsed.experimentId;
+      }
+    } catch (e) {}
+    return liveSession?.experimentId || '1A';
+  });
+
+  const studentCanvasRef = useRef(null);
+  const [slideDrawings, setSlideDrawings] = useState({});
+
+  // Canvas Redraw Effect for Student Live Mirroring (Feature 2)
   useEffect(() => {
-    if (!isSessionLive) {
-      setShowEndedToast(true);
-      const timer = setTimeout(() => setShowEndedToast(false), 4000);
-      return () => clearTimeout(timer);
+    const canvas = studentCanvasRef.current;
+    if (!canvas) return;
+    const parent = canvas.parentElement;
+    if (parent) {
+      canvas.width = parent.clientWidth;
+      canvas.height = parent.clientHeight;
     }
-  }, [isSessionLive]);
+    const ctx = canvas.getContext('2d');
+    const currentDrawing = slideDrawings[currentSlideIndex];
+    if (currentDrawing) {
+      const img = new Image();
+      img.src = currentDrawing;
+      img.onload = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      };
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }, [currentSlideIndex, slideDrawings]);
+
+  // Requirement 2B: Real-time Synchronization Effect
+  useEffect(() => {
+    // 1. Initial State Restoration from localStorage
+    const applySyncData = (data) => {
+      if (!data) return;
+      if (data.currentSlideIndex !== undefined) {
+        setCurrentSlideIndex(data.currentSlideIndex);
+      } else if (data.currentSlide !== undefined) {
+        setCurrentSlideIndex(data.currentSlide);
+      }
+      if (data.slideData) {
+        setCurrentSlideData(data.slideData);
+      } else if (data.slidesData && data.currentSlide !== undefined) {
+        setCurrentSlideData(data.slidesData[data.currentSlide] || data.slidesData[0]);
+      }
+      if (data.totalSlides !== undefined) {
+        setTotalSlides(data.totalSlides);
+      } else if (data.slidesData && data.slidesData.length > 0) {
+        setTotalSlides(data.slidesData.length);
+      } else {
+        setTotalSlides(1);
+      }
+      if (data.fileUrl !== undefined) setActivePresentationFile(data.fileUrl);
+      if (data.fileType) setFileType(data.fileType);
+      if (data.topicTitle) setActiveTopic(data.topicTitle);
+      if (data.slidesData && data.slidesData.length > 0) setSlidesData(data.slidesData);
+      if (data.mode) setLiveMode(data.mode);
+      if (data.experimentId) setActiveExpId(data.experimentId);
+      if (data.isLive !== undefined) setIsLiveActive(data.isLive);
+      else setIsLiveActive(true);
+    };
+
+    try {
+      const cached = localStorage.getItem('lesttry_live_presentation_state') || localStorage.getItem('smarttka_active_live_payload');
+      if (cached) {
+        applySyncData(JSON.parse(cached));
+      }
+    } catch (e) {}
+
+    // 2. Setup BroadcastChannels (lesttry_presentation_sync & smarttka_live_stream)
+    let syncChannel, streamChannel;
+    try {
+      syncChannel = new BroadcastChannel('lesttry_presentation_sync');
+      syncChannel.onmessage = (event) => {
+        const data = event.data;
+        if (!data) return;
+        if (data.type === 'LESTTRY_SLIDE_UPDATE') {
+          applySyncData(data);
+          setIsLiveActive(true);
+        }
+        if (data.type === 'LESTTRY_DRAW_STROKE') {
+          setSlideDrawings(prev => ({ ...prev, [data.slideIndex]: data.drawingData }));
+        }
+        if (data.type === 'LESTTRY_CLEAR_DRAWING') {
+          setSlideDrawings(prev => ({ ...prev, [data.slideIndex]: null }));
+        }
+        if (data.type === 'LESTTRY_STOP_PRESENTATION') {
+          setIsLiveActive(false);
+        }
+      };
+
+      streamChannel = new BroadcastChannel('smarttka_live_stream');
+      streamChannel.onmessage = (event) => {
+        const data = event.data;
+        if (!data) return;
+        if (data.type === 'LESTTRY_SLIDE_UPDATE' || data.type === 'SYNC_PRESENTATION_STATE' || data.type === 'SLIDE_CHANGE') {
+          applySyncData(data);
+          setIsLiveActive(true);
+        }
+        if (data.type === 'LESTTRY_DRAW_STROKE') {
+          setSlideDrawings(prev => ({ ...prev, [data.slideIndex]: data.drawingData }));
+        }
+        if (data.type === 'LESTTRY_CLEAR_DRAWING') {
+          setSlideDrawings(prev => ({ ...prev, [data.slideIndex]: null }));
+        }
+        if (data.type === 'LESTTRY_STOP_PRESENTATION' || data.type === 'END_PRESENTATION') {
+          setIsLiveActive(false);
+        }
+      };
+
+      // Handshake: Request state from teacher if available
+      syncChannel.postMessage({ type: 'STUDENT_REQUEST_STATE' });
+      streamChannel.postMessage({ type: 'STUDENT_REQUEST_STATE' });
+    } catch (e) {}
+
+    // 3. Storage event listener for instant cross-tab sync
+    const handleStorageChange = (e) => {
+      if ((e.key === 'lesttry_live_presentation_state' || e.key === 'smarttka_active_live_payload') && e.newValue) {
+        try {
+          applySyncData(JSON.parse(e.newValue));
+        } catch (err) {}
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      if (syncChannel) syncChannel.close();
+      if (streamChannel) streamChannel.close();
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
 
   // Active experiment data if lab mode
-  const activeExpId = liveSession?.experimentId || '1A';
   const expData = EXPERIMENTS_DATA[activeExpId] || EXPERIMENTS_DATA['1A'];
 
-  // Current Slide if PPT mode
-  const slides = (liveSession?.slides && liveSession.slides.length > 0) ? liveSession.slides : MOCK_BUILTIN_SLIDES;
-  const currentSlideIndex = liveSession?.currentSlideIndex ?? 0;
-  const currentSlide = slides[currentSlideIndex] || slides[0];
+  // Current Slide Object with Defensive Fallbacks
+  const availableSlides = (slidesData && slidesData.length > 0) ? slidesData : MOCK_BUILTIN_SLIDES;
+  const safeSlideIndex = Math.max(0, Math.min(currentSlideIndex, availableSlides.length - 1));
+  const currentSlideObj = currentSlideData || availableSlides[safeSlideIndex] || availableSlides[0];
 
   const handleZoomIn = () => setZoomLevel(prev => Math.min(2.5, prev + 0.25));
   const handleZoomOut = () => setZoomLevel(prev => Math.max(0.75, prev - 0.25));
@@ -106,7 +340,7 @@ export default function StudentLiveView({
 
   // PREVENT MANUAL SCROLL & KEYBOARD NAV ON STUDENT SIDE (STRICT MIRRORING)
   useEffect(() => {
-    if (!isSessionLive) return;
+    if (!isLiveActive) return;
     const handleStudentKeyDown = (e) => {
       const keysToBlock = ['ArrowDown', 'ArrowUp', ' ', 'PageDown', 'PageUp'];
       if (keysToBlock.includes(e.key)) {
@@ -115,11 +349,11 @@ export default function StudentLiveView({
     };
     window.addEventListener('keydown', handleStudentKeyDown);
     return () => window.removeEventListener('keydown', handleStudentKeyDown);
-  }, [isSessionLive]);
+  }, [isLiveActive]);
 
   // AUTO-SCROLL FOLLOWING TEACHER SCROLL PERCENTAGE
   useEffect(() => {
-    if (isSessionLive && liveSession?.scrollPercentage !== undefined && studentScrollContainerRef.current) {
+    if (isLiveActive && liveSession?.scrollPercentage !== undefined && studentScrollContainerRef.current) {
       const el = studentScrollContainerRef.current;
       const maxScroll = el.scrollHeight - el.clientHeight;
       if (maxScroll > 0) {
@@ -129,13 +363,13 @@ export default function StudentLiveView({
         });
       }
     }
-  }, [isSessionLive, liveSession?.scrollPercentage, currentSlideIndex]);
+  }, [isLiveActive, liveSession?.scrollPercentage, safeSlideIndex]);
 
   // LISTEN FOR DIRECT BROADCASTCHANNEL SCROLL EVENTS
   useEffect(() => {
     let channel;
     try {
-      channel = new BroadcastChannel('smarttka_live_classroom');
+      channel = new BroadcastChannel('smarttka_live_stream');
       channel.onmessage = (e) => {
         if (e.data?.type === 'SYNC_SCROLL' && e.data?.scrollPercentage !== undefined) {
           if (studentScrollContainerRef.current) {
@@ -177,75 +411,35 @@ export default function StudentLiveView({
   const renderLabVisualizer = () => {
     const subjectId = expData?.subjectId || 'math';
     const consequence = expData?.calculateConsequence
-      ? expData.calculateConsequence(liveSession.sliderValues)
+      ? expData.calculateConsequence(liveSession?.sliderValues || {})
       : null;
 
     const commonProps = {
       experimentId: activeExpId,
-      sliderValues: liveSession.sliderValues,
+      sliderValues: liveSession?.sliderValues || {},
       consequence,
-      isSimulating: liveSession.isSimulating,
-      simulationProgress: liveSession.simulationProgress,
+      isSimulating: liveSession?.isSimulating || false,
+      simulationProgress: liveSession?.simulationProgress ?? 100,
       simulationTime: 4.0,
       hasRun: true
     };
 
-    if (subjectId === 'math') return <MathVisualizer {...commonProps} />;
-    if (subjectId === 'physics') return <PhysicsVisualizer {...commonProps} />;
-    if (subjectId === 'chemistry') return <ChemistryVisualizer {...commonProps} />;
-    if (subjectId === 'biology') return <BiologyVisualizer {...commonProps} />;
-    if (subjectId === 'economy') return <EconomyVisualizer {...commonProps} />;
-    if (subjectId === 'informatics') return <InformaticsVisualizer {...commonProps} />;
-    return <PhysicsVisualizer {...commonProps} />;
-  };
-
-  // EMPTY STATE VIEW (IF ISLIVE === FALSE OR SESSION ENDED)
-  if (!isSessionLive) {
     return (
-      <div className="fixed inset-0 z-50 bg-[#F8FAFC] flex flex-col items-center justify-center p-4 sm:p-6 font-sans animate-fade-in">
-        
-        {/* TOAST NOTIFICATION FOR ENDED SESSION */}
-        {showEndedToast && (
-          <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl border border-slate-700 text-xs font-bold flex items-center gap-3 animate-bounce-slow">
-            <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
-            <span>Sesi presentasi kelas telah diakhiri oleh Guru.</span>
-          </div>
-        )}
-
-        {/* CLEAN WHITE CARD CONTAINER (#FFFFFF) */}
-        <div className="bg-white max-w-lg w-full rounded-3xl border border-slate-200 shadow-xl p-8 sm:p-10 text-center space-y-6">
-          
-          <div className="w-20 h-20 rounded-3xl bg-slate-100 text-slate-500 flex items-center justify-center mx-auto shadow-inner">
-            <MonitorOff className="w-10 h-10" />
-          </div>
-
-          <div className="space-y-2">
-            <h2 className="text-xl sm:text-2xl font-black text-slate-900">
-              Tidak Ada Presentasi Berlangsung
-            </h2>
-            <p className="text-sm text-slate-500 leading-relaxed font-medium max-w-md mx-auto">
-              Bapak/Ibu Guru belum memulai presentasi atau telah mengakhiri sesi tayang kelas. Layar materi akan muncul otomatis saat guru mulai menayangkan materi.
-            </p>
-          </div>
-
-          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <button
-              onClick={onExit}
-              className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-white hover:bg-slate-50 text-slate-700 font-extrabold text-xs sm:text-sm border border-slate-200 transition-all shadow-xs active:scale-98"
-            >
-              Kembali ke Dashboard Siswa
-            </button>
-          </div>
-
-        </div>
-      </div>
+      <SimulationErrorBoundary onReset={() => {}}>
+        {subjectId === 'math' && <MathVisualizer {...commonProps} />}
+        {subjectId === 'physics' && <PhysicsVisualizer {...commonProps} />}
+        {subjectId === 'chemistry' && <ChemistryVisualizer {...commonProps} />}
+        {subjectId === 'biology' && <BiologyVisualizer {...commonProps} />}
+        {subjectId === 'economy' && <EconomyVisualizer {...commonProps} />}
+        {subjectId === 'informatics' && <InformaticsVisualizer {...commonProps} />}
+      </SimulationErrorBoundary>
     );
-  }
+  };
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900 text-slate-900 flex flex-col font-sans overflow-y-auto">
       
-      {/* 1. TOP LIVE HEADER (STUDENT MIRROR BAR) */}
+      {/* 1. TOP LIVE HEADER (Requirement 3: Clean Mirror Viewport) */}
       <header className="bg-white border-b border-slate-200 px-4 sm:px-6 py-3.5 flex items-center justify-between shrink-0 shadow-xs">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-md shadow-indigo-600/20">
@@ -255,21 +449,21 @@ export default function StudentLiveView({
             <div className="flex items-center gap-2">
               <span className="px-2.5 py-0.5 rounded-full bg-red-100 text-red-700 border border-red-200 text-[10px] font-black uppercase flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-red-600 animate-ping" />
-                LIVE MENYIMAK
+                🔴 Live Mirroring dari Guru
               </span>
-              <span className="text-xs font-black text-slate-900 hidden sm:inline">
-                Kode Kelas: <span className="text-indigo-600 font-mono">{liveSession.classCode || 'TKA-882'}</span>
+              <span className="text-xs font-black text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-100 font-mono">
+                Slide {safeSlideIndex + 1} dari {totalSlides || availableSlides.length}
               </span>
             </div>
             <h1 className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5 leading-none">
-              Menyimak Presentasi Guru Real-Time 📱
+              {activeTopic || 'Presentasi Sesi Kelas Real-Time'}
             </h1>
           </div>
         </div>
 
         {/* EXIT BUTTON & ZOOM CONTROLS FOR STUDENT */}
         <div className="flex items-center gap-2">
-          {liveSession.mode === 'ppt' && (
+          {liveMode === 'ppt' && (
             <div className="hidden sm:flex items-center gap-1 bg-slate-100 p-1 rounded-2xl border border-slate-200">
               <button
                 onClick={handleZoomOut}
@@ -319,16 +513,16 @@ export default function StudentLiveView({
           </span>
           <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 font-extrabold text-[11px] flex items-center gap-1.5 shadow-xs">
             <span className="w-2 h-2 rounded-full bg-emerald-600 animate-ping" />
-            ● Terhubung Real-Time ke Layar Guru
+            ● Live Mirror Active
           </span>
         </div>
       </div>
 
-      {/* 3. MAIN MIRROR CANVAS CONTAINER (RESPONSIVE 16:9 SCREEN RATIO) */}
+      {/* 3. MAIN MIRROR CANVAS CONTAINER */}
       <main className="flex-1 p-4 sm:p-6 bg-slate-900 flex flex-col items-center justify-center relative overflow-hidden">
         
         {/* MOBILE ZOOM FLOATING TOOLBAR */}
-        {liveSession.mode === 'ppt' && (
+        {liveMode === 'ppt' && (
           <div className="sm:hidden absolute top-6 right-6 z-20 bg-slate-900/90 backdrop-blur-md p-1.5 rounded-2xl border border-slate-700 flex items-center gap-1 shadow-lg text-white">
             <button onClick={handleZoomOut} className="p-2 hover:bg-slate-800 rounded-xl">
               <ZoomOut className="w-4 h-4 text-slate-300" />
@@ -346,23 +540,27 @@ export default function StudentLiveView({
         <div className="w-full max-w-5xl mx-auto flex flex-col items-center justify-center">
           
           {/* MODE A: PPT SLIDES MIRROR */}
-          {liveSession.mode === 'ppt' && (
-            <div className="w-full space-y-4">
+          {liveMode === 'ppt' && (
+            <div className="w-full space-y-4 relative">
+              <canvas
+                ref={studentCanvasRef}
+                className="absolute inset-0 w-full h-full pointer-events-none z-30"
+              />
               
-              {/* IF UPLOADED FILE IS PDF: RENDER REAL PDF IFRAME */}
-              {liveSession?.fileType === 'pdf' && liveSession?.fileUrl ? (
+              {/* IF UPLOADED FILE IS PDF: RENDER REAL PDF IFRAME AT ACTIVE SLIDE PAGE */}
+              {fileType === 'pdf' && activePresentationFile ? (
                 <div className="w-full bg-white rounded-3xl border border-slate-800 shadow-2xl p-2 sm:p-4">
                   <iframe
-                    src={`${liveSession.fileUrl}#toolbar=0`}
+                    src={`${activePresentationFile}#page=${safeSlideIndex + 1}&toolbar=0`}
                     className="w-full h-[500px] rounded-2xl border border-slate-200 bg-white"
                     title="Slide Presentasi Guru PDF"
                   />
                 </div>
-              ) : liveSession?.fileType === 'image' && liveSession?.fileUrl ? (
+              ) : fileType === 'image' && activePresentationFile ? (
                 /* IF UPLOADED FILE IS IMAGE: RENDER IMAGE */
                 <div className="w-full bg-white rounded-3xl border border-slate-800 shadow-2xl p-2 sm:p-4 flex justify-center">
                   <img
-                    src={liveSession.fileUrl}
+                    src={activePresentationFile}
                     alt="Slide Presentasi Guru"
                     className="max-h-[500px] w-auto object-contain rounded-2xl border border-slate-200"
                   />
@@ -382,33 +580,37 @@ export default function StudentLiveView({
                     <div className="flex justify-between items-start shrink-0">
                       <div>
                         <span className="px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-extrabold uppercase">
-                          {currentSlide?.subtitle || 'Materi Kelas Live'}
+                          {currentSlideObj?.subtitle || activeTopic || 'Materi Kelas Live'}
                         </span>
                         <h2 className="text-xl sm:text-3xl font-black text-white mt-3 tracking-tight">
-                          {currentSlide?.title || 'Slide Materi Guru'}
+                          {currentSlideObj?.title || 'Slide Materi Guru'}
                         </h2>
                       </div>
 
                       <div className="px-3 py-1 rounded-xl bg-slate-800/80 border border-slate-700 text-xs font-mono text-slate-300">
-                        Slide {currentSlideIndex + 1} / {slides.length}
+                        Slide {safeSlideIndex + 1} dari {totalSlides || availableSlides.length}
                       </div>
                     </div>
 
                     {/* Main Slide Body */}
                     <div className="my-4 space-y-4">
                       <p className="text-sm sm:text-lg text-slate-200 leading-relaxed font-medium">
-                        {currentSlide?.content}
+                        {currentSlideObj?.content}
                       </p>
 
-                      {currentSlide?.formula && (
-                        <div className="p-4 rounded-2xl bg-indigo-900/40 border border-indigo-500/30 font-mono text-sm sm:text-xl font-bold text-indigo-300 text-center shadow-inner">
-                          {currentSlide.formula}
+                      {currentSlideObj?.formula && (
+                        <div className="my-2">
+                          <FormattedFormula 
+                            math={currentSlideObj.formula}
+                            label="Rumus & Model Matematika"
+                            accentColor="indigo"
+                          />
                         </div>
                       )}
 
-                      {currentSlide?.bulletPoints && (
+                      {currentSlideObj?.bulletPoints && (
                         <div className="space-y-2">
-                          {currentSlide.bulletPoints.map((pt, idx) => (
+                          {currentSlideObj.bulletPoints.map((pt, idx) => (
                             <div key={idx} className="flex items-start gap-2.5 text-xs sm:text-base text-slate-300 font-medium">
                               <span className="w-2 h-2 rounded-full bg-emerald-400 mt-2 shrink-0" />
                               <span>{pt}</span>
@@ -420,18 +622,21 @@ export default function StudentLiveView({
 
                     {/* Slide Footer Info */}
                     <div className="pt-4 border-t border-slate-800 flex justify-between items-center text-xs text-slate-400 font-semibold shrink-0">
-                      <span>SmartTKA Live Synchronized Presentation</span>
-                      <span>Diperbarui Oleh Guru</span>
+                      <span>LestTry Live Mirroring System</span>
+                      <span className="text-indigo-300">Navigasi slide dikendalikan langsung oleh Guru</span>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* SLIDE NAVIGATION MIRROR INDICATOR */}
+              {/* SLIDE NAVIGATION MIRROR INDICATOR & NOTICE (Requirement 3) */}
               <div className="flex items-center justify-between text-xs text-slate-400 font-medium px-2">
-                <span>Gunakan tombol zoom jika teks slide terasa kecil di Layar HP Anda</span>
+                <span className="flex items-center gap-1.5 text-amber-300 font-semibold">
+                  <Lock className="w-3.5 h-3.5 shrink-0" />
+                  Navigasi slide dikendalikan langsung oleh Guru
+                </span>
                 <span className="font-mono text-indigo-400 font-bold">
-                  ● Halaman {currentSlideIndex + 1} dari {slides.length}
+                  ● Slide {safeSlideIndex + 1} dari {totalSlides || availableSlides.length}
                 </span>
               </div>
 
@@ -439,7 +644,7 @@ export default function StudentLiveView({
           )}
 
           {/* MODE B: LAB SIMULATOR MIRROR */}
-          {liveSession.mode === 'lab' && (
+          {liveMode === 'lab' && (
             <div className="w-full space-y-4">
               
               <div className="bg-slate-950 p-4 sm:p-6 rounded-3xl border border-slate-800 shadow-2xl">
@@ -448,10 +653,10 @@ export default function StudentLiveView({
                     <span className="text-xs font-black uppercase text-emerald-400 px-3 py-1 rounded-full bg-emerald-950 border border-emerald-800">
                       Live Mirror Simulator
                     </span>
-                    <h2 className="text-lg font-bold text-white mt-1">{expData.title}</h2>
+                    <h2 className="text-lg font-bold text-white mt-1">{expData?.title || 'Simulasi Visual Interaktif'}</h2>
                   </div>
                   <span className="text-xs font-mono text-slate-400 bg-slate-900 px-3 py-1 rounded-xl border border-slate-800">
-                    ID Modul: {expData.id}
+                    ID Modul: {activeExpId}
                   </span>
                 </div>
 

@@ -33,7 +33,7 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
       { name: '💀 Kasus Predator Terlalu Dominan', values: { predatorPop: 90, preyPop: 200, foodResource: 50 } },
       { name: '🌾 Kasus Ledakan Hama (Pestisida)', values: { predatorPop: 5, preyPop: 1800, foodResource: 95 } }
     ],
-    calculateConsequence: ({ predatorPop, preyPop, foodResource }) => {
+    calculateConsequence: ({ predatorPop = 30, preyPop = 800, foodResource = 70 } = {}) => {
       const ratio = preyPop / (predatorPop * 15 + 1);
 
       if (predatorPop > 75 && preyPop < 300) {
@@ -108,7 +108,7 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
       { name: '🐌 Kasus Mielin Rusak (Multiple Sclerosis)', values: { sodiumConc: 100, myelinSheath: 1, stimulusVoltage: 15 } },
       { name: '💉 Kasus Bius Lokal Blocked', values: { sodiumConc: 15, myelinSheath: 7, stimulusVoltage: 10 } }
     ],
-    calculateConsequence: ({ sodiumConc, myelinSheath, stimulusVoltage }) => {
+    calculateConsequence: ({ sodiumConc = 120, myelinSheath = 8, stimulusVoltage = 15 } = {}) => {
       const speed = Math.round((myelinSheath * 12) + (sodiumConc / 10));
       const peakVoltage = stimulusVoltage > 10 ? 30 : -70;
 
@@ -184,7 +184,7 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
       { name: '✂️ Kasus CRISPR Editing Success', values: { dominantFreqP: 0.9, naturalSelection: 10, generations: 5 } },
       { name: '⚠️ Kasus Mutasi Dominan Tertekan', values: { dominantFreqP: 0.2, naturalSelection: 80, generations: 4 } }
     ],
-    calculateConsequence: ({ dominantFreqP, naturalSelection, generations }) => {
+    calculateConsequence: ({ dominantFreqP = 0.7, naturalSelection = 20, generations = 3 } = {}) => {
       const q = 1 - dominantFreqP;
       const p2 = Math.round(Math.pow(dominantFreqP, 2) * 100);
       const pq2 = Math.round(2 * dominantFreqP * q * 100);
@@ -251,7 +251,7 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
       { name: '📉 Kasus Overpriced Pembeli Kabur', values: { priceRp: 150000, consumerIncome: 90, competitorPrice: 40000 } },
       { name: '🏷️ Kasus Diskon Hancur Harga', values: { priceRp: 12000, consumerIncome: 110, competitorPrice: 50000 } }
     ],
-    calculateConsequence: ({ priceRp, consumerIncome, competitorPrice }) => {
+    calculateConsequence: ({ priceRp = 50000, consumerIncome = 100, competitorPrice = 45000 } = {}) => {
       const baseDemand = 1000 * (consumerIncome / 100);
       const priceRatio = priceRp / competitorPrice;
       const quantity = Math.max(50, Math.round(baseDemand / Math.pow(priceRatio, 2)));
@@ -330,7 +330,7 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
       { name: '🔥 Kasus Hipereflasi (Uang Banjir)', values: { biRate: 2, reserveReq: 2, fiscalSpending: 480 } },
       { name: '🧊 Kasus Resesi Ekonomi (Kredit Macet)', values: { biRate: 14, reserveReq: 12, fiscalSpending: 80 } }
     ],
-    calculateConsequence: ({ biRate, reserveReq, fiscalSpending }) => {
+    calculateConsequence: ({ biRate = 6, reserveReq = 5, fiscalSpending = 200 } = {}) => {
       const moneySupply = fiscalSpending * (10 / reserveReq);
       const inflation = Math.max(0.5, Math.round((moneySupply / (biRate * 40)) * 10) / 10);
       const unemployment = Math.round(biRate * 0.9 + 3);
@@ -407,7 +407,7 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
       { name: '💣 Kasus Spekulatif Volatilitas Tinggi', values: { stocksWeight: 100, bondsWeight: 0, marketVolatility: 55 } },
       { name: '🛡️ Kasus Konservatif Aman Rendah', values: { stocksWeight: 10, bondsWeight: 90, marketVolatility: 15 } }
     ],
-    calculateConsequence: ({ stocksWeight, bondsWeight, marketVolatility }) => {
+    calculateConsequence: ({ stocksWeight = 60, bondsWeight = 40, marketVolatility = 20 } = {}) => {
       const totalAlloc = stocksWeight + bondsWeight;
       const expectedReturn = (stocksWeight * 0.15 + bondsWeight * 0.06).toFixed(1);
       const portfolioRisk = Math.round((stocksWeight / 100) * marketVolatility + (bondsWeight / 100) * 4);
@@ -485,7 +485,7 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
       { name: '🚗 Kasus Kemacetan Horor (Weight Tinggi)', values: { warehouseNodes: 20, trafficJam: 9, fuelWeight: 4 } },
       { name: '⚡ Kasus Jaringan Micro Node', values: { warehouseNodes: 5, trafficJam: 1, fuelWeight: 1 } }
     ],
-    calculateConsequence: ({ warehouseNodes, trafficJam, fuelWeight }) => {
+    calculateConsequence: ({ warehouseNodes = 12, trafficJam = 4, fuelWeight = 2 } = {}) => {
       const evaluatedNodes = warehouseNodes * 3;
       const totalTimeMin = Math.round(warehouseNodes * 4 * trafficJam);
       const fuelCost = Math.round(totalTimeMin * 1.5 * fuelWeight);
@@ -550,7 +550,7 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
       { name: '🔒 Kasus Enkripsi RSA 2048-bit Amati', values: { primeP: 61, primeQ: 53, publicKeyE: 17 } },
       { name: '🔓 Kasus Prima Terlalu Kecil (Mudah Di-hack)', values: { primeP: 11, primeQ: 13, publicKeyE: 3 } }
     ],
-    calculateConsequence: ({ primeP, primeQ, publicKeyE }) => {
+    calculateConsequence: ({ primeP = 61, primeQ = 53, publicKeyE = 17 } = {}) => {
       const n = primeP * primeQ;
       const phi = (primeP - 1) * (primeQ - 1);
       const isWeak = n < 1000;
@@ -616,7 +616,7 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
       { name: '💥 Kasus Overshooting (Learning Rate Terlalu Besar)', values: { learningRate: 0.9, hiddenLayers: 2, noiseInput: 20 } },
       { name: '🐌 Kasus Underfitting (Terlalu Lambat)', values: { learningRate: 0.001, hiddenLayers: 1, noiseInput: 40 } }
     ],
-    calculateConsequence: ({ learningRate, hiddenLayers, noiseInput }) => {
+    calculateConsequence: ({ learningRate = 0.05, hiddenLayers = 4, noiseInput = 10 } = {}) => {
       let accuracy = 99 - noiseInput * 0.5 - (learningRate > 0.3 ? (learningRate - 0.3) * 100 : 0);
       accuracy = Math.max(10, Math.min(99, Math.round(accuracy)));
       const loss = (100 - accuracy) / 100;

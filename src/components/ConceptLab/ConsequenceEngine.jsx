@@ -11,6 +11,7 @@ import {
   RotateCcw
 } from 'lucide-react';
 import FormulaTrickModal from './FormulaTrickModal';
+import FormattedFormula from '../FormattedFormula';
 
 export default function ConsequenceEngine({ consequence, experiment, sliderValues, onReset }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -171,9 +172,11 @@ export default function ConsequenceEngine({ consequence, experiment, sliderValue
               {getSectionB()}
             </p>
           </div>
-          <div className="pt-2 border-t border-slate-100 text-[11px] text-teal-600 font-semibold font-mono flex items-center gap-1">
-            <BookOpen className="w-3.5 h-3.5 text-teal-500" />
-            <span className="truncate">Formula: {experiment.formula}</span>
+          <div className="pt-2 border-t border-slate-100">
+            <FormattedFormula
+              math={experiment.formula}
+              inline={true}
+            />
           </div>
         </div>
 

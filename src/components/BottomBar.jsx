@@ -12,6 +12,7 @@ export default function BottomBar({ currentView, onViewChange, currentUser }) {
 
   const navItems = isStudent ? [
     { id: 'dashboard', label: 'Asesmen', icon: LayoutDashboard },
+    { id: 'student_live', label: 'Simak Live', icon: Tv },
     { id: 'history', label: 'Riwayat', icon: FileText },
   ] : [
     { id: 'teacher_dashboard', label: 'Menu Utama', icon: LayoutDashboard },

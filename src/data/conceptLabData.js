@@ -111,7 +111,7 @@ export const EXPERIMENTS_DATA = {
       { name: '🔥 Kasus Krisis (Atmosfer Jatuh)', values: { fuelBurnRate: 60, payloadMass: 9000, launchAngle: 45 } },
       { name: '💥 Kasus Ekstrem (Terbakar Atmosfer)', values: { fuelBurnRate: 240, payloadMass: 1500, launchAngle: 30 } }
     ],
-    calculateConsequence: ({ fuelBurnRate, payloadMass, launchAngle }) => {
+    calculateConsequence: ({ fuelBurnRate = 150, payloadMass = 4000, launchAngle = 75 } = {}) => {
       const thrust = fuelBurnRate * 120;
       const weight = (payloadMass + 5000) * 9.8;
       const netAccel = (thrust - weight) / payloadMass;
@@ -190,7 +190,7 @@ export const EXPERIMENTS_DATA = {
       { name: '💥 Kasus Kolaps Kabel Putus', values: { archSpan: 850, cableThickness: 20, trafficLoad: 420 } },
       { name: '🛡️ Kasus Arsitektur Super Kokoh', values: { archSpan: 300, cableThickness: 80, trafficLoad: 150 } }
     ],
-    calculateConsequence: ({ archSpan, cableThickness, trafficLoad }) => {
+    calculateConsequence: ({ archSpan = 500, cableThickness = 45, trafficLoad = 200 } = {}) => {
       const integralMoment = (trafficLoad * Math.pow(archSpan, 2)) / (8 * (cableThickness * 10));
       const safetyRatio = (cableThickness * 150) / (integralMoment + 1);
 
@@ -266,7 +266,7 @@ export const EXPERIMENTS_DATA = {
       { name: '🔍 Kasus Zoom In Distorsi', values: { rotationAngle: 180, scale3d: 2.5, translateX: 30 } },
       { name: '⚠️ Kasus Glitch Skala Nol', values: { rotationAngle: 90, scale3d: 0.2, translateX: -40 } }
     ],
-    calculateConsequence: ({ rotationAngle, scale3d, translateX }) => {
+    calculateConsequence: ({ rotationAngle = 45, scale3d = 1.0, translateX = 10 } = {}) => {
       if (scale3d < 0.3) {
         return {
           status: 'warning',

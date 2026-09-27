@@ -33,7 +33,7 @@ export const PHYSICS_CHEMISTRY_EXPERIMENTS = {
       { name: '💨 Kasus Straight Line High Speed', values: { dragCoeff: 0.25, wingAngle: 5, speed: 350 } },
       { name: '⚠️ Kasus Lift-off Terlempar', values: { dragCoeff: 0.8, wingAngle: 38, speed: 360 } }
     ],
-    calculateConsequence: ({ dragCoeff, wingAngle, speed }) => {
+    calculateConsequence: ({ dragCoeff = 0.35, wingAngle = 15, speed = 240 } = {}) => {
       const vMS = speed / 3.6;
       const downforce = 0.5 * dragCoeff * 1.225 * Math.sin((wingAngle * Math.PI) / 180) * Math.pow(vMS, 2);
       const fuelPenalty = (dragCoeff * Math.pow(speed, 2)) / 1000;
@@ -110,7 +110,7 @@ export const PHYSICS_CHEMISTRY_EXPERIMENTS = {
       { name: '🌡️ Kasus Terbuang Banyak Panas', values: { tempHot: 400, tempCold: 110, gasPressure: 20 } },
       { name: '💥 Kasus Overpressure Reaktor', values: { tempHot: 1150, tempCold: 20, gasPressure: 95 } }
     ],
-    calculateConsequence: ({ tempHot, tempCold, gasPressure }) => {
+    calculateConsequence: ({ tempHot = 650, tempCold = 30, gasPressure = 40 } = {}) => {
       const thK = tempHot + 273.15;
       const tcK = tempCold + 273.15;
       const efficiency = (1 - (tcK / thK)) * 100;
@@ -188,7 +188,7 @@ export const PHYSICS_CHEMISTRY_EXPERIMENTS = {
       { name: '🧱 Kasus Atenuasi Dinding Tebal', values: { frequency: 35, power: 30, wallThickness: 45 } },
       { name: '🌐 Kasus 4G Jangkauan Luas', values: { frequency: 2.4, power: 50, wallThickness: 25 } }
     ],
-    calculateConsequence: ({ frequency, power, wallThickness }) => {
+    calculateConsequence: ({ frequency = 28, power = 60, wallThickness = 20 } = {}) => {
       const alpha = 0.05 * frequency;
       const intensity = power * Math.exp(-alpha * (wallThickness / 10));
       const speedGbps = Math.round((frequency / 4) * (intensity / (power + 1)) * 10) / 10;
@@ -265,7 +265,7 @@ export const PHYSICS_CHEMISTRY_EXPERIMENTS = {
       { name: '☣️ Kasus Overdosis Toksik', values: { stomachPH: 1, particleSurface: 95, rateConstK: 1.8 } },
       { name: '🐌 Kasus Gagal Larut (Terapis Lambat)', values: { stomachPH: 5, particleSurface: 15, rateConstK: 0.2 } }
     ],
-    calculateConsequence: ({ stomachPH, particleSurface, rateConstK }) => {
+    calculateConsequence: ({ stomachPH = 2, particleSurface = 60, rateConstK = 0.8 } = {}) => {
       const dissolveRate = (rateConstK * particleSurface) / stomachPH;
 
       if (dissolveRate > 45) {
@@ -340,7 +340,7 @@ export const PHYSICS_CHEMISTRY_EXPERIMENTS = {
       { name: '❄️ Kasus Suhu Salju Extreme', values: { electrolyteConc: 0.5, temperature: -8, metalPair: 1 } },
       { name: '🔥 Kasus Thermal Runaway (Panas)', values: { electrolyteConc: 2.8, temperature: 62, metalPair: 3 } }
     ],
-    calculateConsequence: ({ electrolyteConc, temperature, metalPair }) => {
+    calculateConsequence: ({ electrolyteConc = 1.2, temperature = 25, metalPair = 1 } = {}) => {
       const tempK = temperature + 273.15;
       const baseE0 = metalPair === 1 ? 3.7 : metalPair === 2 ? 3.2 : 3.9;
       const voltage = baseE0 - ((8.314 * tempK) / (2 * 96485)) * Math.log(1 / (electrolyteConc + 0.1));
@@ -418,7 +418,7 @@ export const PHYSICS_CHEMISTRY_EXPERIMENTS = {
       { name: '📉 Kasus Suhu Sangat Panas (Rugi)', values: { reactorPressure: 80, reactionTemp: 650, catalystPresent: 1 } },
       { name: '🛑 Kasus Tanpa Katalis (Sangat Lambat)', values: { reactorPressure: 150, reactionTemp: 250, catalystPresent: 0 } }
     ],
-    calculateConsequence: ({ reactorPressure, reactionTemp, catalystPresent }) => {
+    calculateConsequence: ({ reactorPressure = 200, reactionTemp = 450, catalystPresent = 1 } = {}) => {
       const yieldPct = Math.round((reactorPressure / 400) * (1 - reactionTemp / 800) * 100);
       const speedFactor = (reactionTemp / 400) * (catalystPresent ? 5 : 1);
 

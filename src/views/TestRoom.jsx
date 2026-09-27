@@ -13,11 +13,14 @@ import {
   BookOpen,
   Maximize2,
   Minimize2,
-  Info
+  Info,
+  Brain,
+  Sparkles
 } from 'lucide-react';
 import { MOCK_QUESTIONS } from '../data/mockData';
+import FormattedFormula from '../components/FormattedFormula';
 
-export default function TestRoom({ assessment, onFinishTest, onCancelTest }) {
+export default function TestRoom({ assessment, onFinishTest, onCancelTest, currentUser }) {
   const questions = MOCK_QUESTIONS;
   const totalQuestions = questions.length;
   
@@ -25,12 +28,30 @@ export default function TestRoom({ assessment, onFinishTest, onCancelTest }) {
   const [userAnswers, setUserAnswers] = useState({}); // { [questionId]: 'A' | 'B' | ... }
   const [hesitantFlags, setHesitantFlags] = useState({}); // { [questionId]: boolean }
   
-  // Timer setup: 30 minutes in seconds = 1800
-  const [timeLeft, setTimeLeft] = useState(assessment.durationMinutes * 60 || 1800);
+  // Timer setup: default 30 minutes (1800s) or assessment duration
+  const [timeLeft, setTimeLeft] = useState(assessment?.durationMinutes * 60 || 1800);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
 
+  // Loading animation state on submission (1-second transition)
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const currentQuestion = questions[currentIndex];
+
+  // Broadcast student question progress to Teacher Radar
+  const broadcastProgress = (qIdx) => {
+    try {
+      const channel = new BroadcastChannel('smarttka_classroom_quiz');
+      channel.postMessage({
+        type: 'QUIZ_PROGRESS',
+        studentName: currentUser?.name || 'Ahmad Dani',
+        currentQuestion: qIdx + 1,
+        totalQuestions: totalQuestions,
+        timestamp: Date.now()
+      });
+      channel.close();
+    } catch (e) {}
+  };
 
   // Live Countdown Timer
   useEffect(() => {
@@ -55,6 +76,7 @@ export default function TestRoom({ assessment, onFinishTest, onCancelTest }) {
       ...prev,
       [currentQuestion.id]: optionId
     }));
+    broadcastProgress(currentIndex);
   };
 
   const toggleHesitant = () => {
@@ -66,17 +88,24 @@ export default function TestRoom({ assessment, onFinishTest, onCancelTest }) {
 
   const handleNext = () => {
     if (currentIndex < totalQuestions - 1) {
-      setCurrentIndex(prev => prev + 1);
+      const nextIdx = currentIndex + 1;
+      setCurrentIndex(nextIdx);
+      broadcastProgress(nextIdx);
     }
   };
 
   const handlePrev = () => {
     if (currentIndex > 0) {
-      setCurrentIndex(prev => prev - 1);
+      const prevIdx = currentIndex - 1;
+      setCurrentIndex(prevIdx);
+      broadcastProgress(prevIdx);
     }
   };
 
   const handleFinalSubmit = () => {
+    setShowSubmitModal(false);
+    setIsSubmitting(true);
+
     // Calculate final scores
     let correctCount = 0;
     const details = questions.map(q => {
@@ -94,15 +123,30 @@ export default function TestRoom({ assessment, onFinishTest, onCancelTest }) {
 
     const scorePercentage = Math.round((correctCount / totalQuestions) * 100);
 
-    onFinishTest({
-      assessmentId: assessment.id,
-      score: scorePercentage,
-      correctCount,
-      totalQuestions,
-      details,
-      userAnswers,
-      timeSpentSeconds: (assessment.durationMinutes * 60) - timeLeft
-    });
+    // Broadcast submission event to Teacher side
+    try {
+      const channel = new BroadcastChannel('smarttka_classroom_quiz');
+      channel.postMessage({
+        type: 'QUIZ_SUBMITTED',
+        studentName: currentUser?.name || 'Ahmad Dani',
+        score: scorePercentage,
+        timestamp: Date.now()
+      });
+      channel.close();
+    } catch (e) {}
+
+    // 1-Second Loading Animation Delay
+    setTimeout(() => {
+      onFinishTest({
+        assessmentId: assessment?.id || 'asm-tka-01',
+        score: scorePercentage,
+        correctCount,
+        totalQuestions,
+        details,
+        userAnswers,
+        timeSpentSeconds: ((assessment?.durationMinutes || 30) * 60) - timeLeft
+      });
+    }, 1200);
   };
 
   // Stats for submission confirmation
@@ -110,11 +154,38 @@ export default function TestRoom({ assessment, onFinishTest, onCancelTest }) {
   const hesitantCount = Object.values(hesitantFlags).filter(Boolean).length;
   const unansweredCount = totalQuestions - answeredCount;
 
+  if (isSubmitting) {
+    return (
+      <div className="fixed inset-0 z-50 bg-[#F8FAFC] flex flex-col items-center justify-center p-6 text-center">
+        <div className="relative mb-6">
+          <div className="w-20 h-20 rounded-2xl bg-white border border-slate-200 shadow-xl flex items-center justify-center">
+            <Brain className="w-10 h-10 text-blue-600 animate-pulse" />
+          </div>
+          <div className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-teal-500 text-white flex items-center justify-center text-xs font-black shadow-md">
+            <Sparkles className="w-4 h-4" />
+          </div>
+        </div>
+
+        <h3 className="text-xl font-extrabold text-slate-900 mb-2">
+          Menganalisis Pola Penalaran &amp; Dimensi Kemampuan...
+        </h3>
+        <p className="text-xs text-slate-500 max-w-sm leading-relaxed">
+          Sistem sedang mengkalkulasi skor 5 pilar kompetensi akademik dan memetakan potensi miskonsepsi secara real-time.
+        </p>
+
+        {/* Progress Bar Loader */}
+        <div className="w-64 h-2 bg-slate-200 rounded-full mt-6 overflow-hidden">
+          <div className="h-full bg-gradient-to-r from-blue-600 via-indigo-600 to-teal-500 animate-pulse w-full" />
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="fixed inset-0 z-50 bg-[#F8FAFC] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 bg-[#F8FAFC] flex flex-col overflow-hidden w-full max-w-full overflow-x-hidden font-sans">
       
       {/* 1. TOP HEADER (DISTRACTION FREE) */}
-      <header className="h-16 bg-white border-b border-slate-200 px-4 sm:px-8 flex items-center justify-between shadow-xs z-20">
+      <header className="h-16 bg-white border-b border-slate-200 px-4 sm:px-8 flex items-center justify-between shadow-xs z-20 shrink-0">
         
         {/* Left: Test Title & Mode Info */}
         <div className="flex items-center gap-3">
@@ -124,7 +195,7 @@ export default function TestRoom({ assessment, onFinishTest, onCancelTest }) {
           </div>
           <div>
             <h2 className="font-extrabold text-slate-900 text-sm sm:text-base leading-tight truncate max-w-[200px] sm:max-w-md">
-              {assessment.title}
+              {assessment?.title || 'Kalkulus Trajektori & Nalar Turunan'}
             </h2>
             <p className="text-[11px] text-slate-500 hidden sm:block">
               Soal {currentIndex + 1} dari {totalQuestions} • {currentQuestion.topic}
@@ -133,10 +204,10 @@ export default function TestRoom({ assessment, onFinishTest, onCancelTest }) {
         </div>
 
         {/* Center/Right: Timer & Question Drawer Trigger */}
-        <div className="flex items-center gap-3 sm:gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           
           {/* Live Countdown Timer */}
-          <div className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl border text-xs sm:text-sm font-extrabold font-mono transition-colors ${
+          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-extrabold font-mono transition-colors ${
             timeLeft < 300 
               ? 'bg-red-50 text-red-600 border-red-200 animate-pulse'
               : 'bg-slate-100 text-slate-800 border-slate-200'
@@ -147,8 +218,9 @@ export default function TestRoom({ assessment, onFinishTest, onCancelTest }) {
 
           {/* Drawer Grid Toggle Button */}
           <button
+            type="button"
             onClick={() => setIsDrawerOpen(!isDrawerOpen)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors border border-slate-200"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors border border-slate-200 cursor-pointer"
             title="Buka Grid Nomor Soal"
           >
             <Grid className="w-4 h-4 text-blue-600" />
@@ -160,8 +232,9 @@ export default function TestRoom({ assessment, onFinishTest, onCancelTest }) {
 
           {/* Cancel / Exit Ujian */}
           <button
+            type="button"
             onClick={onCancelTest}
-            className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors"
+            className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
             title="Keluar dari Ujian"
           >
             <X className="w-5 h-5" />
@@ -198,21 +271,23 @@ export default function TestRoom({ assessment, onFinishTest, onCancelTest }) {
             </div>
 
             {/* Question Text Card */}
-            <div className="p-6 sm:p-8 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-4">
+            <div className="p-6 sm:p-8 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
               <p className="text-base sm:text-lg text-slate-900 font-medium leading-relaxed">
                 {currentQuestion.questionText}
               </p>
 
-              {/* Code/Formula box if available */}
+              {/* KaTeX Rendered Mathematics Box */}
               {currentQuestion.hasCodeOrFormula && (
-                <div className="p-4 rounded-xl bg-slate-900 text-teal-300 font-mono text-xs sm:text-sm border border-slate-800 shadow-inner">
-                  <span className="text-slate-500 select-none">// Persamaan Matematis:</span>
-                  <p className="mt-1 font-bold text-white">{currentQuestion.formulaSnippet}</p>
-                </div>
+                <FormattedFormula
+                  math={currentQuestion.formulaSnippet || "y(t) = v_{0y} \\cdot t - \\frac{1}{2} g t^2"}
+                  label="Persamaan Matematika Soal"
+                  explanation="KaTeX Scientific Notation"
+                  accentColor="indigo"
+                />
               )}
             </div>
 
-            {/* Options List (A, B, C, D, E) */}
+            {/* Options List (A, B, C, D) - Touch Friendly (min-h-[48px]) */}
             <div className="space-y-3">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">
                 Pilih Jawaban Yang Paling Tepat:
@@ -224,24 +299,25 @@ export default function TestRoom({ assessment, onFinishTest, onCancelTest }) {
                 return (
                   <button
                     key={option.id}
+                    type="button"
                     onClick={() => handleSelectOption(option.id)}
-                    className={`w-full text-left p-4 sm:p-5 rounded-2xl border-2 transition-all duration-150 flex items-start gap-4 ${
+                    className={`w-full text-left p-4 sm:p-5 min-h-[48px] rounded-2xl border-2 transition-all duration-150 flex items-center gap-4 cursor-pointer ${
                       isSelected
-                        ? 'bg-blue-50/70 border-blue-600 shadow-md shadow-blue-500/10'
+                        ? 'bg-blue-50/70 border-blue-600 shadow-sm'
                         : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
                     }`}
                   >
                     {/* Option Badge A-E */}
                     <div className={`w-8 h-8 rounded-xl shrink-0 flex items-center justify-center font-extrabold text-sm transition-colors ${
                       isSelected
-                        ? 'bg-blue-600 text-white shadow-sm'
+                        ? 'bg-blue-600 text-white shadow-xs'
                         : 'bg-slate-100 text-slate-600 group-hover:bg-slate-200'
                     }`}>
                       {option.id}
                     </div>
 
                     {/* Option Text */}
-                    <div className="flex-1 pt-1">
+                    <div className="flex-1">
                       <p className={`text-sm sm:text-base font-semibold transition-colors ${
                         isSelected ? 'text-blue-900 font-bold' : 'text-slate-800'
                       }`}>
@@ -251,7 +327,7 @@ export default function TestRoom({ assessment, onFinishTest, onCancelTest }) {
 
                     {/* Selected Check Pill */}
                     {isSelected && (
-                      <div className="shrink-0 text-blue-600 pt-1">
+                      <div className="shrink-0 text-blue-600">
                         <CheckCircle2 className="w-5 h-5 fill-blue-600 text-white" />
                       </div>
                     )}
@@ -263,13 +339,14 @@ export default function TestRoom({ assessment, onFinishTest, onCancelTest }) {
           </div>
 
           {/* 3. CONTROL FOOTER BUTTONS */}
-          <div className="mt-8 pt-6 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="mt-8 pt-6 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 pb-4">
             
             {/* Prev Button */}
             <button
+              type="button"
               onClick={handlePrev}
               disabled={currentIndex === 0}
-              className={`w-full sm:w-auto px-5 py-3 rounded-xl border font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all ${
+              className={`w-full sm:w-auto px-5 py-3 rounded-xl border font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer ${
                 currentIndex === 0
                   ? 'border-slate-200 text-slate-300 cursor-not-allowed bg-slate-50'
                   : 'border-slate-300 text-slate-700 bg-white hover:bg-slate-100'
@@ -281,10 +358,11 @@ export default function TestRoom({ assessment, onFinishTest, onCancelTest }) {
 
             {/* Middle: Hesitant Button */}
             <button
+              type="button"
               onClick={toggleHesitant}
-              className={`w-full sm:w-auto px-5 py-3 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all border ${
+              className={`w-full sm:w-auto px-5 py-3 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all border cursor-pointer ${
                 hesitantFlags[currentQuestion.id]
-                  ? 'bg-amber-500 text-white border-amber-600 shadow-md shadow-amber-500/20'
+                  ? 'bg-amber-500 text-white border-amber-600 shadow-xs'
                   : 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100'
               }`}
             >
@@ -295,19 +373,21 @@ export default function TestRoom({ assessment, onFinishTest, onCancelTest }) {
             {/* Right: Next or Submit */}
             {currentIndex < totalQuestions - 1 ? (
               <button
+                type="button"
                 onClick={handleNext}
-                className="w-full sm:w-auto px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-blue-600/20 flex items-center justify-center gap-2 transition-all"
+                className="w-full sm:w-auto px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm shadow-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
               >
                 <span>Berikutnya</span>
                 <ChevronRight className="w-4 h-4" />
               </button>
             ) : (
               <button
+                type="button"
                 onClick={() => setShowSubmitModal(true)}
-                className="w-full sm:w-auto px-6 py-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-teal-600/20 flex items-center justify-center gap-2 transition-all"
+                className="w-full sm:w-auto px-6 py-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs sm:text-sm shadow-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
               >
                 <Send className="w-4 h-4" />
-                <span>Selesaikan Ujian</span>
+                <span>Kumpulkan Jawaban</span>
               </button>
             )}
 
@@ -326,8 +406,9 @@ export default function TestRoom({ assessment, onFinishTest, onCancelTest }) {
               <h3 className="font-extrabold text-slate-900 text-sm">Navigasi Nomor Soal</h3>
             </div>
             <button
+              type="button"
               onClick={() => setIsDrawerOpen(false)}
-              className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+              className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -359,19 +440,21 @@ export default function TestRoom({ assessment, onFinishTest, onCancelTest }) {
 
                 let btnStyles = 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200';
                 if (isHesitant) {
-                  btnStyles = 'bg-amber-500 text-white border-amber-600 font-bold shadow-sm';
+                  btnStyles = 'bg-amber-500 text-white border-amber-600 font-bold shadow-2xs';
                 } else if (isAnswered) {
-                  btnStyles = 'bg-teal-600 text-white border-teal-700 font-bold shadow-sm';
+                  btnStyles = 'bg-teal-600 text-white border-teal-700 font-bold shadow-2xs';
                 }
 
                 return (
                   <button
                     key={q.id}
+                    type="button"
                     onClick={() => {
                       setCurrentIndex(idx);
+                      broadcastProgress(idx);
                       setIsDrawerOpen(false);
                     }}
-                    className={`h-11 rounded-xl border flex flex-col items-center justify-center transition-all text-xs relative ${btnStyles} ${
+                    className={`h-11 rounded-xl border flex flex-col items-center justify-center transition-all text-xs relative cursor-pointer ${btnStyles} ${
                       isCurrent ? 'ring-4 ring-blue-500/30 font-extrabold scale-105 z-10' : ''
                     }`}
                   >
@@ -394,11 +477,12 @@ export default function TestRoom({ assessment, onFinishTest, onCancelTest }) {
               <span className="font-bold text-slate-900">{answeredCount} / {totalQuestions}</span>
             </div>
             <button
+              type="button"
               onClick={() => setShowSubmitModal(true)}
-              className="w-full py-2.5 px-4 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs transition-all shadow-md shadow-teal-600/20 flex items-center justify-center gap-2"
+              className="w-full py-2.5 px-4 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
             >
               <Send className="w-3.5 h-3.5" />
-              <span>Selesaikan Ujian Sekarang</span>
+              <span>Kumpulkan Jawaban</span>
             </button>
           </div>
 
@@ -408,49 +492,60 @@ export default function TestRoom({ assessment, onFinishTest, onCancelTest }) {
 
       {/* 5. CONFIRMATION SUBMISSION MODAL */}
       {showSubmitModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 border border-slate-200 shadow-2xl animate-in fade-in zoom-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="relative w-full max-w-md max-h-[85vh] flex flex-col bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden font-sans">
             
-            <div className="w-12 h-12 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center mb-4">
-              <Send className="w-6 h-6" />
-            </div>
-
-            <h3 className="text-xl font-extrabold text-slate-900">
-              Konfirmasi Selesai Ujian
-            </h3>
-            <p className="text-xs text-slate-500 mt-1">
-              Apakah Anda yakin ingin mengakhiri dan mengirim jawaban asesmen ini?
-            </p>
-
-            {/* Stat Summary Box */}
-            <div className="my-5 p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-600 font-medium">Soal Terjawab:</span>
-                <span className="font-bold text-teal-700">{answeredCount} Soal</span>
-              </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-600 font-medium">Status Ragu-ragu:</span>
-                <span className="font-bold text-amber-600">{hesitantCount} Soal</span>
-              </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-600 font-medium">Belum Dikerjakan:</span>
-                <span className="font-bold text-red-600">{unansweredCount} Soal</span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <button
+            {/* STICKY HEADER */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-white shrink-0">
+              <h3 className="text-lg font-bold text-slate-900">Konfirmasi Selesai Ujian</h3>
+              <button 
+                type="button"
                 onClick={() => setShowSubmitModal(false)}
-                className="flex-1 py-3 px-4 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 font-bold text-xs transition-colors"
+                className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                aria-label="Tutup modal"
               >
-                Kembali Periksa
+                <X className="w-5 h-5" />
               </button>
+            </div>
 
+            {/* SCROLLABLE CONTENT BODY */}
+            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+              <p className="text-xs text-slate-500">
+                Apakah Anda yakin ingin mengakhiri dan mengirim jawaban asesmen ini?
+              </p>
+
+              {/* Stat Summary Box */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-600 font-medium">Soal Terjawab:</span>
+                  <span className="font-bold text-teal-700">{answeredCount} Soal</span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-600 font-medium">Status Ragu-ragu:</span>
+                  <span className="font-bold text-amber-600">{hesitantCount} Soal</span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-600 font-medium">Belum Dikerjakan:</span>
+                  <span className="font-bold text-red-600">{unansweredCount} Soal</span>
+                </div>
+              </div>
+            </div>
+
+            {/* STICKY FOOTER */}
+            <div className="flex items-center justify-end gap-3 px-6 py-3.5 border-t border-slate-100 bg-slate-50 shrink-0">
               <button
-                onClick={handleFinalSubmit}
-                className="flex-1 py-3 px-4 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs transition-all shadow-md shadow-teal-600/20"
+                type="button"
+                onClick={() => setShowSubmitModal(false)}
+                className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-200/60 rounded-xl font-medium cursor-pointer"
               >
-                Ya, Kirim Jawaban
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleFinalSubmit}
+                className="px-5 py-2 text-sm font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-xl shadow-xs cursor-pointer"
+              >
+                Kumpulkan Jawaban ↗
               </button>
             </div>
 

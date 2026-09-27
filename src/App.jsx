@@ -14,18 +14,27 @@ import ProjectorView from './components/ProjectorView';
 import StudentLiveView from './components/StudentLiveView';
 import QuickPracticeModal from './components/QuickPracticeModal';
 import TeacherCheatSheet from './components/TeacherCheatSheet';
+import LoginLoadingScreen from './components/LoginLoadingScreen';
 import { MOCK_USERS, MOCK_ASSESSMENTS } from './data/mockData';
+import { Sparkles, X } from 'lucide-react';
 
 export default function App() {
   // Current active logged in user
   const [currentUser, setCurrentUser] = useState(MOCK_USERS.teacher); // Default teacher view to demonstrate teacher UI
   const [isLoggedIn, setIsLoggedIn] = useState(true);
 
+  // Transition Loading state on Login
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [pendingUser, setPendingUser] = useState(null);
+
   // Active view: 'dashboard' | 'teacher_dashboard' | 'projector' | 'student_live' | 'quick_practice' | 'teacher_cheat_sheet' | 'test' | 'diagnostic' | 'login' | 'history' | 'create_assessment' | 'teacher_analytics' | 'sandbox'
   const [currentView, setCurrentView] = useState('teacher_dashboard');
   
   // Projector initial preset state
   const [projectorPreset, setProjectorPreset] = useState('success');
+
+  // Incoming Quiz Notification alert for Student
+  const [incomingQuizAlert, setIncomingQuizAlert] = useState({ isOpen: false, quizTitle: '' });
 
   // Shared Live Presentation Session State (Teacher Broadcast & Student Mirror Sync)
   const [liveSessionState, setLiveSessionState] = useState(() => {
@@ -98,8 +107,8 @@ export default function App() {
         }
       ],
       questions: [
-        { id: 1, studentName: 'Ahmad Fauzi', text: 'Bu, mengapa sin(90°) memberikan nilai maksimum 1 pada sudut 45°?', time: '09:42' },
-        { id: 2, studentName: 'Siti Rahma', text: 'Pak, apakah massa payload mempengaruhi sudut luncur roket?', time: '09:44' }
+        { id: 1, studentName: 'Ahmad Dani', text: 'Pak, mengapa sin(90°) memberikan nilai maksimum 1 pada sudut 45°?', time: '09:42' },
+        { id: 2, studentName: 'Siti Nurhaliza', text: 'Pak, apakah massa payload mempengaruhi sudut luncur roket?', time: '09:44' }
       ],
       classCode: 'TKA-882',
       connectedCount: 32,
@@ -110,6 +119,24 @@ export default function App() {
   // REAL-TIME BROADCASTCHANNEL & LOCALSTORAGE SYNCRONIZATION LISTENER
   useEffect(() => {
     let channel;
+    let quizChannel;
+    let streamChannel;
+
+    try {
+      streamChannel = new BroadcastChannel('smarttka_live_stream');
+      streamChannel.onmessage = (event) => {
+        if (event.data?.type === 'STUDENT_REQUEST_STATE') {
+          // Re-broadcast state upon student request
+          try {
+            const cached = localStorage.getItem('smarttka_active_live_payload');
+            if (cached) {
+              streamChannel.postMessage(JSON.parse(cached));
+            }
+          } catch (e) {}
+        }
+      };
+    } catch (e) {}
+
     try {
       channel = new BroadcastChannel('smarttka_live_classroom');
       channel.onmessage = (event) => {
@@ -128,9 +155,19 @@ export default function App() {
           });
         }
       };
-    } catch (e) {
-      console.warn('BroadcastChannel not supported in environment, using localStorage fallback');
-    }
+    } catch (e) {}
+
+    try {
+      quizChannel = new BroadcastChannel('smarttka_classroom_quiz');
+      quizChannel.onmessage = (event) => {
+        if (event.data?.type === 'START_QUIZ') {
+          setIncomingQuizAlert({
+            isOpen: true,
+            quizTitle: event.data.quizTitle || 'Kalkulus Trajektori & Nalar Turunan'
+          });
+        }
+      };
+    } catch (e) {}
 
     const handleStorageChange = (e) => {
       if (e.key === 'smarttka_live_session_state' && e.newValue) {
@@ -145,6 +182,8 @@ export default function App() {
 
     return () => {
       if (channel) channel.close();
+      if (quizChannel) quizChannel.close();
+      if (streamChannel) streamChannel.close();
       window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
@@ -152,14 +191,51 @@ export default function App() {
   // Helper function to broadcast state changes across tabs/windows
   const broadcastState = (newState) => {
     setLiveSessionState(newState);
+    const isLive = newState.isActive !== false && newState.isLive !== false;
+
+    const payload = {
+      type: isLive ? 'SYNC_PRESENTATION_STATE' : 'END_PRESENTATION',
+      isLive: isLive,
+      currentSlide: newState.currentSlideIndex || 0,
+      totalSlides: (newState.slides && newState.slides.length > 0) ? newState.slides.length : (newState.totalSlides || 1),
+      fileUrl: newState.fileUrl || null,
+      fileType: newState.fileType || 'mock',
+      topicTitle: newState.pptFileName || 'Analisis Konsep Nyata & Perumusan',
+      slidesData: newState.slides || [],
+      targetClassId: newState.targetClassId || 'ALL',
+      targetClassName: newState.targetClassName || 'XII MIPA 1',
+      mode: newState.mode || 'ppt',
+      experimentId: newState.experimentId || '1A',
+      sliderValues: newState.sliderValues || {},
+      scrollPercentage: newState.scrollPercentage || 0,
+      timestamp: Date.now()
+    };
+
     try {
+      localStorage.setItem('smarttka_active_live_payload', JSON.stringify(payload));
       localStorage.setItem('smarttka_live_session_state', JSON.stringify(newState));
+      localStorage.setItem('smarttka_live_session', JSON.stringify({
+        isLive: isLive,
+        roomCode: newState.classCode || 'TKA-882',
+        teacherName: 'Pak Budi Hartono',
+        currentSlide: (newState.currentSlideIndex || 0) + 1,
+        lastUpdated: Date.now()
+      }));
+    } catch (e) {}
+
+    try {
+      const streamChannel = new BroadcastChannel('smarttka_live_stream');
+      streamChannel.postMessage(payload);
+      streamChannel.close();
     } catch (e) {}
 
     try {
       const channel = new BroadcastChannel('smarttka_live_classroom');
       channel.postMessage({
-        type: 'SYNC_SESSION',
+        type: isLive ? 'TEACHER_START_PRESENTATION' : 'TEACHER_STOP_PRESENTATION',
+        isLive: isLive,
+        roomCode: newState.classCode || 'TKA-882',
+        teacherName: 'Pak Budi Hartono',
         payload: newState,
         timestamp: Date.now()
       });
@@ -190,9 +266,18 @@ export default function App() {
   };
 
   const handleLogin = (userObj) => {
-    setCurrentUser(userObj);
-    setIsLoggedIn(true);
-    setCurrentView(userObj.role === 'student' ? 'dashboard' : 'teacher_dashboard');
+    setPendingUser(userObj);
+    setIsLoggingIn(true);
+  };
+
+  const handleFinishLoginLoading = () => {
+    if (pendingUser) {
+      setCurrentUser(pendingUser);
+      setIsLoggedIn(true);
+      setCurrentView(pendingUser.role === 'student' ? 'dashboard' : 'teacher_dashboard');
+    }
+    setIsLoggingIn(false);
+    setPendingUser(null);
   };
 
   const handleLogout = () => {
@@ -201,7 +286,7 @@ export default function App() {
   };
 
   const handleStartTest = (assessment) => {
-    setSelectedAssessment(assessment);
+    setSelectedAssessment(assessment || MOCK_ASSESSMENTS[0]);
     setCurrentView('test');
   };
 
@@ -221,7 +306,7 @@ export default function App() {
 
   const handlePublishAssessment = (newAssessmentObj) => {
     setAssessmentsList(prev => [newAssessmentObj, ...prev]);
-    setCurrentView('teacher_dashboard');
+    // Stay in teacher_dashboard or quick_practice
   };
 
   const handleViewTeacherAnalytics = (assessmentObj) => {
@@ -275,7 +360,7 @@ export default function App() {
   const handleSubmitStudentQuestion = (questionText) => {
     const newQuestion = {
       id: Date.now(),
-      studentName: currentUser.name || 'Siswa',
+      studentName: currentUser.name || 'Ahmad Dani',
       text: questionText,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
@@ -316,6 +401,16 @@ export default function App() {
     setCurrentView('test');
   };
 
+  // 0. If in loading transition after login, show LoginLoadingScreen
+  if (isLoggingIn) {
+    return (
+      <LoginLoadingScreen
+        onComplete={handleFinishLoginLoading}
+        targetRole={pendingUser?.role || 'student'}
+      />
+    );
+  }
+
   // 1. If not logged in or in login view, show Login Screen
   if (!isLoggedIn || currentView === 'login') {
     return <LoginView onLogin={handleLogin} />;
@@ -328,6 +423,7 @@ export default function App() {
         assessment={selectedAssessment}
         onFinishTest={handleFinishTest}
         onCancelTest={() => setCurrentView(currentUser.role === 'student' ? 'dashboard' : 'teacher_dashboard')}
+        currentUser={currentUser}
       />
     );
   }
@@ -357,6 +453,45 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans relative">
       
+      {/* REAL-TIME INCOMING QUIZ MODAL NOTIFICATION FOR STUDENT */}
+      {incomingQuizAlert.isOpen && currentUser.role === 'student' && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full border border-slate-200 shadow-2xl text-center space-y-4">
+            <div className="w-16 h-16 rounded-2xl bg-amber-100 text-amber-600 mx-auto flex items-center justify-center ring-8 ring-amber-50">
+              <Sparkles className="w-8 h-8 fill-amber-500 animate-pulse" />
+            </div>
+            <div>
+              <span className="px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-[10px] font-black uppercase">
+                🚨 Latihan Baru Dimulai oleh Guru
+              </span>
+              <h3 className="text-lg font-black text-slate-900 mt-2">
+                {incomingQuizAlert.quizTitle}
+              </h3>
+              <p className="text-xs text-slate-500 mt-1 font-medium leading-relaxed">
+                Pak Budi Hartono baru saja membagikan kuis penalaran live untuk kelas Anda (Room: TKA-882).
+              </p>
+            </div>
+            <div className="flex gap-2.5 pt-2">
+              <button
+                onClick={() => setIncomingQuizAlert({ isOpen: false, quizTitle: '' })}
+                className="flex-1 py-3 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-100 cursor-pointer"
+              >
+                Nanti Saja
+              </button>
+              <button
+                onClick={() => {
+                  setIncomingQuizAlert({ isOpen: false, quizTitle: '' });
+                  handleStartTest(MOCK_ASSESSMENTS[0]);
+                }}
+                className="flex-1 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs shadow-md shadow-blue-600/20 cursor-pointer"
+              >
+                Kerjakan Sekarang ↗
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Top Navbar Header */}
       <Navbar
         currentUser={currentUser}
@@ -453,7 +588,7 @@ export default function App() {
                         Progres Belajar Pribadi
                       </span>
                     </div>
-                    <h2 className="text-2xl font-black text-slate-900 mt-1">Riwayat & Hasil Asesmen Saya</h2>
+                    <h2 className="text-2xl font-black text-slate-900 mt-1">Riwayat &amp; Hasil Asesmen Saya</h2>
                     <p className="text-sm text-slate-500 font-medium">Catatan evaluasi nilai mandiri, skor KKM, dan grafik diagnosa kompetensi Anda.</p>
                   </div>
 
@@ -518,7 +653,7 @@ export default function App() {
 
                           <button
                             onClick={() => handleViewDiagnostic(assessmentsList[0])}
-                            className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs shadow-xs transition-all active:scale-95"
+                            className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs shadow-xs transition-all active:scale-95 cursor-pointer"
                           >
                             Lihat Diagnostik Saya 📊
                           </button>
@@ -546,7 +681,7 @@ export default function App() {
                           <span className="font-black text-lg text-emerald-700">{asm.studentProgress || '28/32 Siswa'}</span>
                           <button
                             onClick={() => handleViewTeacherAnalytics(asm)}
-                            className="px-4 py-2 rounded-xl bg-slate-900 text-white font-extrabold text-xs shadow-xs hover:bg-slate-800"
+                            className="px-4 py-2 rounded-xl bg-slate-900 text-white font-extrabold text-xs shadow-xs hover:bg-slate-800 cursor-pointer"
                           >
                             Lihat Analisis Ujian
                           </button>

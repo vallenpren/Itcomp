@@ -3,26 +3,27 @@
 export const MOCK_USERS = {
   student: {
     id: "std-001",
-    name: "Budi Pratama",
+    name: "Ahmad Dani",
     role: "student",
     roleLabel: "Siswa",
+    studentClassId: "MIPA-1",
     class: "XII MIPA 1",
     school: "SMA Negeri 1 Jakarta",
     avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200",
-    email: "budi.pratama@siswa.lesttry.id",
+    email: "ahmad.dani@siswa.lesttry.id",
     targetUniv: "Teknik Informatika - Universitas Indonesia",
     nisn: "0054819203"
   },
   teacher: {
     id: "tch-101",
-    name: "Budi, S.Pd.",
-    title: "Budi, S.Pd.",
+    name: "Pak Budi Hartono",
+    title: "Pak Budi Hartono",
     role: "teacher",
     roleLabel: "Guru / Penguji",
-    subject: "Matematika Saintek & TPS",
+    subject: "Fisika & Matematika Saintek",
     school: "SMA Negeri 1 Jakarta",
     avatar: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=200",
-    email: "budi.teacher@lesttry.id",
+    email: "budi.hartono@lesttry.id",
     nip: "198803152012011002"
   }
 };
