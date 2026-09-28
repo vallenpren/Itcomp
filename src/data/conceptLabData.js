@@ -112,43 +112,62 @@ export const EXPERIMENTS_DATA = {
       { name: '💥 Kasus Ekstrem (Terbakar Atmosfer)', values: { fuelBurnRate: 240, payloadMass: 1500, launchAngle: 30 } }
     ],
     calculateConsequence: ({ fuelBurnRate = 150, payloadMass = 4000, launchAngle = 75 } = {}) => {
-      const thrust = fuelBurnRate * 120;
-      const weight = (payloadMass + 5000) * 9.8;
-      const netAccel = (thrust - weight) / payloadMass;
-      const targetSpeed = Math.round(netAccel * 60);
-      
-      if (netAccel <= 0 || fuelBurnRate < 90) {
-        return {
-          status: 'danger',
-          badge: 'GAGAL JATUH KE BUMI',
-          title: 'Roket Kehilangan Gaya Dorong (Gravitasi Dominate)',
-          description: 'Turunan pertama laju bakar terlalu rendah dibanding massa payload! Roket gagal mencapai kecepatan lepas dan jatuh bebas ke lautan.',
-          bagianA: 'Gaya dorong mesin roket kalah kuat dibanding tarikan gaya gravitasi bumi. Karena bahan bakar lambat terbakar, massa roket tetap berat sehingga percepatan bernilai minus atau nol.',
-          bagianB: 'Sesuai Kalkulus Diferensial f\'(t) = dv/dt, jika F_dorong < m·g, percepatan f\'(t) ≤ 0 m/s². Kecepatan instan roket tidak pernah melewati batas Kecepatan Lolos Orbit (11.2 km/s).',
-          bagianC: 'Naikkan Laju Bakar f\'(t) ke atas 160 kg/s atau kurangi Massa Payload hingga di bawah 4.000 kg agar percepatan roket bertanda positif (+)!',
-          metrics: { Accel: `${netAccel.toFixed(1)} m/s²`, Speed: `${targetSpeed} km/h`, Status: 'Gagal' }
-        };
-      } else if (launchAngle < 50) {
+      try {
+        const safeFuelBurn = Number(fuelBurnRate) > 0 ? Number(fuelBurnRate) : 150;
+        const safeMass = Number(payloadMass) > 0 ? Number(payloadMass) : 4000;
+        const safeAngle = Number(launchAngle) >= 0 ? Number(launchAngle) : 75;
+
+        const thrust = safeFuelBurn * 3000;
+        const totalMass = safeMass + 5000;
+        const weight = totalMass * 9.8;
+        const netAccel = totalMass > 0 ? (thrust - weight) / totalMass : 0;
+        const targetSpeed = Math.round(netAccel * 60);
+
+        if (netAccel <= 0 || safeFuelBurn < 90) {
+          return {
+            status: 'danger',
+            badge: 'GAGAL JATUH KE BUMI',
+            title: 'Roket Kehilangan Gaya Dorong (Gravitasi Dominate)',
+            description: `Turunan laju bakar f'(t) (${safeFuelBurn} kg/s) terlalu rendah dibanding massa payload (${safeMass} kg)! Roket gagal mencapai kecepatan lepas.`,
+            bagianA: `Gaya dorong mesin roket (${Math.round(thrust)} N) kalah kuat dibanding tarikan gaya gravitasi bumi (${Math.round(weight)} N). Karena laju pembakaran (${safeFuelBurn} kg/s) terlalu lambat, massa roket tetap berat (${safeMass} kg) sehingga percepatan bernilai minus atau nol (${netAccel.toFixed(1)} m/s²).`,
+            bagianB: `Sesuai Kalkulus Diferensial f'(t) = dv/dt, jika F_dorong < m·g, percepatan f'(t) ≤ 0 m/s². Kecepatan instan roket (${targetSpeed} km/h) tidak pernah melewati batas Kecepatan Lolos Orbit (11.2 km/s).`,
+            bagianC: `Geser slider Laju Bakar f'(t) ke atas 160 kg/s (saat ini ${safeFuelBurn} kg/s) atau kurangi Massa Payload di bawah 4.000 kg (saat ini ${safeMass} kg) agar percepatan roket bertanda positif (+)!`,
+            metrics: { Accel: `${netAccel.toFixed(1)} m/s²`, Speed: `${targetSpeed} km/h`, Status: 'Gagal' }
+          };
+        } else if (safeAngle < 50) {
+          return {
+            status: 'warning',
+            badge: 'TERBAKAR DI ATMOSFER',
+            title: 'Sudut Luncur Terlalu Landai (Gesekan Udara Ekstrem)',
+            description: `Gaya dorong cukup (${netAccel.toFixed(1)} m/s²), tetapi sudut elevasi (${safeAngle}°) terlalu rendah memicu friksi atmosfer tebal.`,
+            bagianA: `Sudut elevasi saat ini (${safeAngle}°) terlalu landai. Sebagian besar energi kinetik terbuang ke gesekan atmosfer padat di jarak horizontal, mengakibatkan kenaikan suhu pelindung panas roket.`,
+            bagianB: `Komponen gaya dorong vertikal F·sin(${safeAngle}°) terlalu kecil dibanding komponen horizontal F·cos(${safeAngle}°), menyebabkan trajektori lintasan tetap berada di ketinggian atmosfer padat.`,
+            bagianC: `Geser Sudut Luncur (θ) naik mendekati 75° (saat ini ${safeAngle}°) agar roket dengan cepat menembus atmosfer tipis menuju orbit hampa udara!`,
+            metrics: { Accel: `${netAccel.toFixed(1)} m/s²`, Speed: `${targetSpeed} km/h`, Status: 'Overheat' }
+          };
+        } else {
+          return {
+            status: 'optimal',
+            badge: 'BERHASIL MENCAPAI ORBIT',
+            title: 'Berhasil Masuk Orbit Bumi Rendah (LEO)',
+            description: `Kombinasi parameter ideal! Sudut elevasi ${safeAngle}° dan laju pembakaran ${safeFuelBurn} kg/s memberikan keseimbangan optimal antara waktu melayang (t_peak) dan jangkauan orbit.`,
+            bagianA: `Laju pembakaran bahan bakar (${safeFuelBurn} kg/s) menghasilkan dorongan (${Math.round(thrust)} N) yang melesatkan roket melewati gaya tarik bumi. Sudut elevasi ${safeAngle}° membawa roket ke ketinggian orbit LEO dengan aman.`,
+            bagianB: `Percepatan f'(t) konstan positif (${netAccel.toFixed(1)} m/s²) dan sudut luncur optimal (${safeAngle}°) memenuhi persamaan gaya sentripetal v²/r = g, menjaga roket melingkari bumi secara stabil.`,
+            bagianC: `Eksperimen berada dalam kondisi paling optimal! Anda dapat menguji perubahan massa payload untuk mengamati margin keamanan laju percepatan f'(t).`,
+            metrics: { Accel: `${netAccel.toFixed(1)} m/s²`, Speed: `${targetSpeed} km/h`, Status: 'Orbit Stable' }
+          };
+        }
+      } catch (err) {
+        console.error("Error calculating 1A consequence:", err);
         return {
           status: 'warning',
-          badge: 'TERBAKAR DI ATMOSFER',
-          title: 'Sudut Terlalu Landai (Gaya Gesek Geser Ekstrem)',
-          description: 'Gaya dorong cukup, tetapi sudut peluncuran terlalu rendah memicu friksi atmosfer tebal yang membakar pelindung panas roket.',
-          bagianA: 'Roket meluncur terlalu mendatar sehingga harus menembus lapisan atmosfer tebal dalam jarak lebih panjang. Gesekan molekul udara menghasilkan panas gesekan yang membahayakan badan roket.',
-          bagianB: 'Komponen gaya dorong vertikal F·sin(θ) terlalu kecil dibanding komponen horizontal F·cos(θ), menyebabkan trajektori lintasan tetap berada di ketinggian atmosfer padat (Zone 2).',
-          bagianC: 'Ubah Sudut Luncur (θ) mendekati 75° agar roket dengan cepat keluar menembus atmosfer tipis menuju ketinggian ruang hampa!',
-          metrics: { Accel: `${netAccel.toFixed(1)} m/s²`, Speed: `${targetSpeed} km/h`, Status: 'Overheat' }
-        };
-      } else {
-        return {
-          status: 'optimal',
-          badge: 'BERHASIL MENCAPAI ORBIT',
-          title: 'Berhasil Masuk Orbit Bumi Rendah (LEO)',
-          description: 'Kombinasi laju bakar f\'(t), massa payload, dan sudut luncur tepat seimbang! Satelit berhasil mengorbit pada kecepatan presisi.',
-          bagianA: 'Laju pembakaran bahan bakar menghasilkan dorongan yang melesatkan roket melewati gaya tarik bumi tanpa overheating berlebihan. Satelit masuk ke orbit dengan mulus!',
-          bagianB: 'Percepatan f\'(t) konstan positif dan sudut luncur optimal memenuhi persamaan gaya sentripetal v²/r = g, menjaga roket melingkari bumi secara stabil.',
-          bagianC: 'Eksperimen berada dalam kondisi paling optimal. Anda bisa mencoba mengubah massa payload untuk melihat fleksibilitas margin keamanan roket!',
-          metrics: { Accel: `${netAccel.toFixed(1)} m/s²`, Speed: `${targetSpeed} km/h`, Status: 'Orbit Stable' }
+          badge: 'PERHITUNGAN ULANG',
+          title: 'Perhitungan Trajektori Diproses',
+          description: 'Sistem menyesuaikan ulang parameter fisika roket.',
+          bagianA: 'Parameter roket sedang disesuaikan secara dinamis.',
+          bagianB: 'Model diferensial dv/dt memperbarui nilai vektor percepatan.',
+          bagianC: 'Geser slider parameter ke rentang aman.',
+          metrics: { Status: 'Active' }
         };
       }
     },
@@ -191,41 +210,59 @@ export const EXPERIMENTS_DATA = {
       { name: '🛡️ Kasus Arsitektur Super Kokoh', values: { archSpan: 300, cableThickness: 80, trafficLoad: 150 } }
     ],
     calculateConsequence: ({ archSpan = 500, cableThickness = 45, trafficLoad = 200 } = {}) => {
-      const integralMoment = (trafficLoad * Math.pow(archSpan, 2)) / (8 * (cableThickness * 10));
-      const safetyRatio = (cableThickness * 150) / (integralMoment + 1);
+      try {
+        const safeSpan = Number(archSpan) > 0 ? Number(archSpan) : 500;
+        const safeCable = Number(cableThickness) > 0 ? Number(cableThickness) : 45;
+        const safeLoad = Number(trafficLoad) >= 0 ? Number(trafficLoad) : 200;
 
-      if (safetyRatio < 0.8) {
-        return {
-          status: 'danger',
-          badge: 'STRUKTUR JEMBATAN RETAK / PUTUS',
-          title: 'Integral Momen Gaya Melebihi Threshold Baja',
-          description: 'Akumulasi beban total ∫w(x)dx jauh melampaui kekuatan kabel baja. Struktur kabel jembatan memerah dan patah di bagian tengah span!',
-          bagianA: 'Beban berat kendaraan terkumpul di tengah jembatan sementara kabel penopang terlalu tipis. Akumulasi momen gaya memutus ikatan kabel baja utama!',
-          bagianB: 'Integrasi M = ∫ w(x)·(L-x) dx menghasilkan momen bending kuadratik terhadap panjang span L². Kenaikan panjang jembatan melipatgandakan beban secara eksponensial.',
-          bagianC: 'Tebalkan Kabel Baja menjadi di atas 60 cm atau persingkat rentang span (L) agar rasio keamanan jembatan kembali di atas 1.3!',
-          metrics: { SafetyRatio: safetyRatio.toFixed(2), MaxStress: `${Math.round(integralMoment)} MPa`, State: 'Broke' }
-        };
-      } else if (safetyRatio < 1.3) {
+        const integralMoment = (safeLoad * Math.pow(safeSpan, 2)) / (8 * (safeCable * 10));
+        const safetyRatio = (safeCable * 150) / (integralMoment + 1);
+
+        if (safetyRatio < 0.8) {
+          return {
+            status: 'danger',
+            badge: 'STRUKTUR JEMBATAN RETAK / PUTUS',
+            title: 'Integral Momen Gaya Melebihi Threshold Baja',
+            description: `Akumulasi beban total ∫w(x)dx pada bentang ${safeSpan} m dengan muatan ${safeLoad} ton/m melampaui kekuatan kabel ${safeCable} cm. Struktur kabel memerah dan patah!`,
+            bagianA: `Beban berat kendaraan (${safeLoad} ton/m) terkumpul di bentang jembatan (${safeSpan} m) sementara kabel penopang (${safeCable} cm) terlalu tipis. Akumulasi momen gaya memutus ikatan kabel baja utama!`,
+            bagianB: `Integrasi M = ∫ w(x)·(L-x) dx menghasilkan momen bending kuadratik terhadap panjang span L² (${safeSpan}² m). Kenaikan panjang jembatan melipatgandakan beban secara eksponensial.`,
+            bagianC: `Geser slider Ketebalan Kabel Baja naik di atas 60 cm (saat ini ${safeCable} cm) atau kurangi Beban Lalu Lintas di bawah 250 ton/m (saat ini ${safeLoad} ton/m) agar rasio keamanan kembali di atas 1.3!`,
+            metrics: { SafetyRatio: safetyRatio.toFixed(2), MaxStress: `${Math.round(integralMoment)} MPa`, State: 'Broke' }
+          };
+        } else if (safetyRatio < 1.3) {
+          return {
+            status: 'warning',
+            badge: 'REGANGAN KABEL TINGGI',
+            title: 'Beban Mendekati Batas Elastisitas',
+            description: `Jembatan masih berdiri namun kabel (${safeCable} cm) menerima regangan tinggi pada beban ${safeLoad} ton/m di span ${safeSpan} m.`,
+            bagianA: `Kabel jembatan (${safeCable} cm) tertarik kencang mendekati batas regangan maksimalnya akibat beban ${safeLoad} ton/m. Keretakan kecil (micro-crack) berisiko muncul di gantungan tengah.`,
+            bagianB: `Tegangan katenari y(x) = (w0 / 2T0) x² menunjukkan bahwa kelengkungan kabel pada rentang ${safeSpan} m berada di ambang deformasi plastis material baja.`,
+            bagianC: `Geser slider Beban Lalu Lintas turun di bawah ${safeLoad} ton/m atau tebalkan kabel baja di atas ${safeCable} cm untuk menjamin margin keamanan jembatan!`,
+            metrics: { SafetyRatio: safetyRatio.toFixed(2), MaxStress: `${Math.round(integralMoment)} MPa`, State: 'Warning' }
+          };
+        } else {
+          return {
+            status: 'optimal',
+            badge: 'STRUKTUR OPTIMAL AMAN',
+            title: 'Distribusi Beban Integral Sangat Seimbang',
+            description: `Kombinasi ideal! Bentang ${safeSpan} m dan kabel ${safeCable} cm mampu menahan muatan ${safeLoad} ton/m dengan rasio keamanan sangat kuat (${safetyRatio.toFixed(2)}).`,
+            bagianA: `Seluruh beban kendaraan (${safeLoad} ton/m) di atas jembatan bentang ${safeSpan} m berhasil disalurkan secara merata oleh kurva kabel baja ${safeCable} cm ke tiang penyangga utama.`,
+            bagianB: `Hasil integrasi momen gaya ∫w(x)dx menghasilkan tegangan ${Math.round(integralMoment)} MPa yang berada jauh di bawah batas luluh (yield strength) baja suspensi.`,
+            bagianC: `Kondisi arsitektur jembatan berada pada performa paling kokoh dan aman dari risiko vibrasi angin maupun gempa!`,
+            metrics: { SafetyRatio: safetyRatio.toFixed(2), MaxStress: `${Math.round(integralMoment)} MPa`, State: 'Safe' }
+          };
+        }
+      } catch (err) {
+        console.error("Error calculating 1B consequence:", err);
         return {
           status: 'warning',
-          badge: 'REGANGAN KABEL TINGGI',
-          title: 'Beban Mendekati Batas Elastisitas',
-          description: 'Jembatan masih berdiri namun mengalami micro-crack berbahaya jika angin kencang menerpa.',
-          bagianA: 'Kabel jembatan tertarik sangat kencang mendekati batas regangan maksimalnya. Keretakan kecil (micro-crack) mulai terjadi di area gantungan tengah.',
-          bagianB: 'Tegangan katenari y(x) = (w0 / 2T0) x² menunjukkan bahwa kelengkungan kabel berada di ambang deformasi plastis material baja.',
-          bagianC: 'Kurangi Batas Beban Lalu Lintas (trafficLoad) atau tambahkan kabel pendukung sekunder untuk membagi akumulasi integral momen.',
-          metrics: { SafetyRatio: safetyRatio.toFixed(2), MaxStress: `${Math.round(integralMoment)} MPa`, State: 'Warning' }
-        };
-      } else {
-        return {
-          status: 'optimal',
-          badge: 'STRUKTUR OPTIMAL AMAN',
-          title: 'Distribusi Beban Integral Sangat Seimbang',
-          description: 'Lengkungan kurva katenari dan ketebalan kabel mampu menahan lonjakan beban kendaraan berat secara ideal.',
-          bagianA: 'Seluruh beban truk dan mobil di atas jembatan berhasil disalurkan secara merata oleh kurva kabel baja ke dua tiang penyangga utama.',
-          bagianB: 'Hasil integrasi momen gaya ∫w(x)dx menghasilkan angka tegangan yang jauh di bawah batas luluh (yield strength) baja suspensi.',
-          bagianC: 'Kondisi struktur sangat ideal dan mampu menahan gempa serta terpaan angin kencang secara sempurna!',
-          metrics: { SafetyRatio: safetyRatio.toFixed(2), MaxStress: `${Math.round(integralMoment)} MPa`, State: 'Safe' }
+          badge: 'EVALUASI DIPERBARUI',
+          title: 'Kalkulasi Integral Diproses',
+          description: 'Sistem memperbarui integral momen gaya jembatan.',
+          bagianA: 'Kalkulasi beban jembatan sedang dihitung ulang.',
+          bagianB: 'Integrasi M = ∫ w(x)·(L-x) dx diperbarui secara linier.',
+          bagianC: 'Geser slider parameter untuk hasil presisi.',
+          metrics: { Status: 'Active' }
         };
       }
     },
@@ -267,27 +304,45 @@ export const EXPERIMENTS_DATA = {
       { name: '⚠️ Kasus Glitch Skala Nol', values: { rotationAngle: 90, scale3d: 0.2, translateX: -40 } }
     ],
     calculateConsequence: ({ rotationAngle = 45, scale3d = 1.0, translateX = 10 } = {}) => {
-      if (scale3d < 0.3) {
-        return {
-          status: 'warning',
-          badge: 'GLITCH SKALA SINGULAR',
-          title: 'Determinan Matriks Mendekati Singular',
-          description: 'Skala vektor terlalu kecil membuat koordinat piksel mengalami clipping rendering pada viewport 3D.',
-          bagianA: 'Karakter 3D menguncup menjadi sangat tipis hingga tampak gepeng atau menghilang dari layar permainan.',
-          bagianB: 'Determinan matriks skala det(M) = S³ mendekati angka 0. Dalam aljabar linier, matriks dengan determinan 0 tidak memiliki invers dan kehilangan informasi ruang 3D.',
-          bagianC: 'Naikkan Skala Vektor 3D (S) di atas 0.8x untuk mengembalikan determinan matriks ke nilai stabil!',
-          metrics: { Det: scale3d.toFixed(2), FPS: '60 FPS', Status: 'Clipping' }
-        };
-      } else {
+      try {
+        const safeAngle = Number(rotationAngle) >= 0 ? Number(rotationAngle) : 45;
+        const safeScale = Number(scale3d) > 0.01 ? Number(scale3d) : 1.0;
+        const safeTransX = !isNaN(Number(translateX)) ? Number(translateX) : 10;
+
+        if (safeScale < 0.3) {
+          return {
+            status: 'warning',
+            badge: 'GLITCH SKALA SINGULAR',
+            title: 'Determinan Matriks Mendekati Singular',
+            description: `Skala vektor (${safeScale}x) terlalu kecil membuat koordinat piksel mengalami clipping rendering pada rotasi ${safeAngle}°.`,
+            bagianA: `Karakter 3D menguncup pada skala ${safeScale}x hingga tampak gepeng atau menghilang dari layar permainan saat diputar ${safeAngle}°.`,
+            bagianB: `Determinan matriks skala det(M) = S³ (${Math.pow(safeScale, 3).toFixed(3)}) mendekati 0. Dalam aljabar linier, matriks determinan 0 tidak memunculkan invers koordinat ruang.`,
+            bagianC: `Geser slider Skala Vektor 3D (S) naik di atas 0.8x (saat ini ${safeScale}x) untuk mengembalikan determinan matriks ke nilai stabil!`,
+            metrics: { Det: safeScale.toFixed(2), FPS: '60 FPS', Status: 'Clipping' }
+          };
+        } else {
+          return {
+            status: 'optimal',
+            badge: 'RENDER 60 FPS PRESISI',
+            title: 'Transformasi Matriks Linear Sempurna',
+            description: `Perkalian matriks rotasi R(${safeAngle}°) dan translasi X (${safeTransX}px) pada skala ${safeScale}x berhasil merender objek 3D secara presisi.`,
+            bagianA: `Objek 3D berputar pada sudut ${safeAngle}° dan bergeser ${safeTransX}px secara mulus di layar tanpa ada tekstur yang pecah atau terdistorsi.`,
+            bagianB: `Perkalian vektor titik V' = M · V memetakan setiap simpul objek ke layar 2D monitor dengan matriks skala ${safeScale}x secara linear persis.`,
+            bagianC: `Transformasi matriks berada di kondisi sempurna! Cobalah memutar sudut rotasi θ untuk melihat animasi 3D real-time.`,
+            metrics: { Det: safeScale.toFixed(2), FPS: '60 FPS', Status: 'Rendered' }
+          };
+        }
+      } catch (err) {
+        console.error("Error calculating 1C consequence:", err);
         return {
           status: 'optimal',
-          badge: 'RENDER 60 FPS PRESISI',
-          title: 'Transformasi Matriks Linear Sempurna',
-          description: 'Perkalian matriks rotasi R(θ) dan translasi T berhasil merender posisi karakter 3D tanpa deformasi tekstur.',
-          bagianA: 'Objek 3D berputar dan bergeser secara mulus di layar layar tanpa ada tekstur yang pecah atau terdistorsi.',
-          bagianB: 'Perkalian vektor titik V\' = M · V memetakan setiap simpul (vertex) objek ke layar 2D monitor dengan transformasi linier persis.',
-          bagianC: 'Transformasi matriks berada di kondisi sempurna. Cobalah memutar sudut rotasi θ untuk melihat animasi 3D real-time!',
-          metrics: { Det: scale3d.toFixed(2), FPS: '60 FPS', Status: 'Rendered' }
+          badge: 'RENDER HASIL',
+          title: 'Transformasi Matriks Berhasil',
+          description: 'Matriks 3D terhitung dengan stabil.',
+          bagianA: 'Karakter 3D ter-render di canvas.',
+          bagianB: 'Vektor V\' = M · V stabil.',
+          bagianC: 'Geser slider parameter untuk rotasi.',
+          metrics: { Status: 'Active' }
         };
       }
     },
@@ -306,3 +361,32 @@ Object.keys(EXPERIMENTS_DATA).forEach((id) => {
     EXPERIMENTS_DATA[id].formulaTricks = FORMULA_TRICKS_DATA[id];
   }
 });
+
+export const generateCustomSlidesDeck = (fileName = 'Dokumen Presentasi.pptx', fileUrl = null, fileType = 'pptx') => {
+  return [
+    {
+      id: 1,
+      title: fileName,
+      subtitle: `Dokumen Live Presentasi (${fileType.toUpperCase()})`,
+      content: `Slide presentasi "${fileName}" disebarkan secara real-time ke seluruh layar proyektor dan HP siswa.`,
+      formula: 'y(t) = v_{0y} \\cdot t - \\frac{1}{2} g t^2',
+      bulletPoints: [
+        'Halaman 1: Pengenalan Topik & Konsep Utama',
+        'Materi disimak langsung secara sinkron oleh seluruh siswa.',
+        'Gunakan fitur spidol & annotation untuk memberi catatan pada slide.'
+      ]
+    },
+    {
+      id: 2,
+      title: `${fileName} - Halaman 2`,
+      subtitle: 'Analisis & Pembahasan Kasus',
+      content: 'Pendalaman materi dan studi kasus penerapan formulasi dalam problem ilmiah.',
+      formula: "f'(t) = \\frac{dv}{dt}",
+      bulletPoints: [
+        'Halaman 2: Perumusan Lanjutan & Contoh Soal',
+        'Mendorong diskusi aktif antara guru dan siswa.'
+      ]
+    }
+  ];
+};
+

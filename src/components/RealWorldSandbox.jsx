@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import confetti from 'canvas-confetti';
+import { evaluateExperiment, computeSimulationResult } from '../data/evaluationEngine';
 import { 
   Compass, 
   Sliders, 
@@ -57,6 +58,14 @@ export default function RealWorldSandbox() {
   };
 
   const [sliderValues, setSliderValues] = useState(() => getInitialSliderValues(currentExpData));
+
+  // State for latest simulation result (Lifting state up for dynamic calculation report)
+  const [latestSimulationResult, setLatestSimulationResult] = useState(() => computeSimulationResult(activeExpId, sliderValues));
+
+  // Automatically sync latestSimulationResult whenever active experiment or slider values change
+  useEffect(() => {
+    setLatestSimulationResult(computeSimulationResult(activeExpId, sliderValues));
+  }, [activeExpId, sliderValues]);
 
   // Simulation Runner State
   const [isSimulating, setIsSimulating] = useState(false);
@@ -148,6 +157,9 @@ export default function RealWorldSandbox() {
     setSimulationProgress(0);
     setSimulationTime(0);
 
+    // Compute live simulation execution metrics
+    setLatestSimulationResult(computeSimulationResult(activeExpId, sliderValues));
+
     const totalDurationSec = 4.8;
     const intervalMs = 50;
     const totalSteps = (totalDurationSec * 1000) / intervalMs;
@@ -164,6 +176,7 @@ export default function RealWorldSandbox() {
       if (step >= totalSteps) {
         clearInterval(timerRef.current);
         setIsSimulating(false);
+        setLatestSimulationResult(computeSimulationResult(activeExpId, sliderValues));
         try {
           confetti({
             particleCount: 60,
@@ -183,10 +196,10 @@ export default function RealWorldSandbox() {
     };
   }, []);
 
-  // Calculate real-time consequence
-  const consequence = currentExpData?.calculateConsequence
-    ? currentExpData.calculateConsequence(sliderValues)
-    : null;
+  // Calculate real-time consequence reactively
+  const consequence = useMemo(() => {
+    return evaluateExperiment(activeExpId, sliderValues);
+  }, [activeExpId, sliderValues]);
 
   return (
     <div className={`min-h-screen bg-[#F8FAFC] transition-all duration-300 font-sans ${isPresentationMode ? 'p-4 sm:p-8 bg-slate-900 text-white' : 'space-y-6 p-3 sm:p-6'}`}>
@@ -535,6 +548,7 @@ export default function RealWorldSandbox() {
         consequence={consequence} 
         experiment={currentExpData}
         sliderValues={sliderValues}
+        latestSimulationResult={latestSimulationResult}
         onReset={handleResetSliders}
       />
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpenCheck, Sparkles, ShieldCheck } from 'lucide-react';
+import { Sparkles, Wifi, ShieldCheck, Compass } from 'lucide-react';
 
 export default function LoginLoadingScreen({ onComplete, targetRole = 'student' }) {
   const [progress, setProgress] = useState(0);
@@ -7,23 +7,21 @@ export default function LoginLoadingScreen({ onComplete, targetRole = 'student' 
   const [isFadingOut, setIsFadingOut] = useState(false);
 
   const statusMessages = [
-    "Memverifikasi sesi akun...",
-    "Menghubungkan ke ruang data kelas...",
-    "Menyiapkan modul Real-World Concept Lab...",
-    "Selamat datang kembali! Mengalihkan ke dashboard..."
+    "Menghubungkan ke Saluran Kelas LestTry...",
+    "Memuat Kanvas Eksperimen & Mesin KaTeX...",
+    "Menyiapkan Sinkronisasi Live Proyektor...",
+    "Selesai! Mengalihkan ke Dashboard..."
   ];
 
   useEffect(() => {
-    // Smooth progress timer (0% to 100% over ~2000ms)
     const startTime = Date.now();
-    const totalDuration = 2000;
+    const totalDuration = 2200;
 
     const interval = setInterval(() => {
       const elapsed = Date.now() - startTime;
       const calculatedProgress = Math.min(100, Math.round((elapsed / totalDuration) * 100));
       setProgress(calculatedProgress);
 
-      // Update status text based on elapsed time thresholds
       if (elapsed >= 1800) {
         setStatusIndex(3);
       } else if (elapsed >= 1200) {
@@ -48,83 +46,78 @@ export default function LoginLoadingScreen({ onComplete, targetRole = 'student' 
   }, [onComplete]);
 
   return (
-    <div className={`fixed inset-0 z-50 bg-[#F8FAFC] flex flex-col items-center justify-center p-6 font-sans transition-all duration-300 ${
+    <div className={`fixed inset-0 z-50 bg-white/95 backdrop-blur-md flex flex-col items-center justify-center p-6 font-sans transition-all duration-300 ${
       isFadingOut ? 'opacity-0 scale-98 pointer-events-none' : 'opacity-100 scale-100'
     }`}>
       
-      {/* Soft Radial Glow Background Layer */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-indigo-100/60 via-slate-50 to-slate-50 pointer-events-none" />
-      
-      {/* Decorative Blur Circles */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-indigo-400/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-teal-400/10 rounded-full blur-2xl pointer-events-none" />
+      {/* SOFT GRADIENT GLOW LAYERS */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-100/50 via-slate-50 to-white pointer-events-none" />
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-teal-400/10 rounded-full blur-2xl pointer-events-none" />
 
-      {/* CENTER HERO ANIMATION BOX */}
-      <div className="relative z-10 flex flex-col items-center text-center max-w-sm w-full">
+      {/* CENTER HERO CONCEPT ANIMATION */}
+      <div className="relative z-10 flex flex-col items-center text-center max-w-md w-full space-y-6">
         
-        {/* HERO ICON BOX WITH DUAL ROTATING ORBIT RINGS */}
-        <div className="relative w-36 h-36 flex items-center justify-center mb-8">
+        {/* HERO ICON WITH ATOM / RADAR PULSE RINGS */}
+        <div className="relative w-36 h-36 flex items-center justify-center">
           
-          {/* Outer Orbit Ring 1 (Royal Indigo) */}
-          <div className="absolute inset-0 rounded-full border-2 border-dashed border-indigo-500/40 animate-[spin_8s_linear_infinite]" />
+          {/* Outer Ring (Royal Blue #2563EB) */}
+          <div className="absolute inset-0 rounded-full border-2 border-dashed border-blue-500/40 animate-[spin_8s_linear_infinite]" />
           
-          {/* Inner Orbit Ring 2 (Soft Teal - Counter Rotate) */}
-          <div className="absolute inset-2 rounded-full border border-teal-400/50 animate-[spin_12s_linear_infinite_reverse]" />
+          {/* Inner Ring (Emerald Green #10B981) */}
+          <div className="absolute inset-2 rounded-full border-2 border-emerald-400/50 animate-[spin_10s_linear_infinite_reverse]" />
           
-          {/* Pulse Glow Effect */}
-          <div className="absolute inset-4 rounded-3xl bg-indigo-600/10 animate-pulse" />
+          {/* Soft Central Pulse Glow */}
+          <div className="absolute inset-4 rounded-3xl bg-gradient-to-tr from-blue-600/20 to-teal-400/20 animate-pulse" />
 
-          {/* Orbiting Particle 1 */}
-          <div className="absolute w-2.5 h-2.5 rounded-full bg-indigo-600 shadow-md shadow-indigo-600/50 animate-[spin_4s_linear_infinite] origin-[68px_68px] top-0 left-0" />
+          {/* Orbiting Particle 1 (Blue) */}
+          <div className="absolute w-3 h-3 rounded-full bg-blue-600 shadow-lg shadow-blue-600/50 animate-[spin_3.5s_linear_infinite] origin-[68px_68px] top-0 left-0" />
           
-          {/* Orbiting Particle 2 */}
-          <div className="absolute w-2 h-2 rounded-full bg-teal-500 shadow-md shadow-teal-500/50 animate-[spin_6s_linear_infinite_reverse] origin-[56px_56px] bottom-1 right-1" />
+          {/* Orbiting Particle 2 (Emerald) */}
+          <div className="absolute w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50 animate-[spin_5s_linear_infinite_reverse] origin-[58px_58px] bottom-1 right-1" />
 
-          {/* Central Logo Box (White Rounded-3xl Card) */}
-          <div className="w-20 h-20 bg-white rounded-3xl shadow-xl shadow-indigo-600/15 border border-slate-100 flex items-center justify-center relative z-10 transform transition-transform hover:scale-105">
-            <BookOpenCheck className="w-10 h-10 text-indigo-600 stroke-[2.2]" />
+          {/* Central Card with Compass Icon */}
+          <div className="w-20 h-20 bg-white rounded-3xl shadow-xl shadow-blue-500/20 border border-slate-100 flex items-center justify-center relative z-10 transform transition-transform hover:scale-105">
+            <Compass className="w-10 h-10 text-blue-600 stroke-[2.2] animate-pulse" />
           </div>
 
         </div>
 
-        {/* BRANDING TITLE & SLOGAN */}
-        <div className="space-y-1 mb-8">
-          <div className="flex items-center justify-center gap-1.5">
-            <span className="text-xl font-black tracking-tight text-slate-900">
-              SmartTKA
-            </span>
-            <span className="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 text-[10px] font-black uppercase">
-              Pro V1.0
-            </span>
-          </div>
-          <p className="text-xs text-slate-500 font-medium">
-            Platform Asesmen Kemampuan Akademik Presisi
+        {/* BRANDING TITLE & TYPOGRAPHY */}
+        <div className="space-y-1">
+          <h2 className="text-2xl font-extrabold tracking-tight font-['Plus_Jakarta_Sans'] text-slate-900">
+            Lest<span className="text-blue-600">Try</span>
+          </h2>
+          <p className="text-xs text-slate-500 font-semibold">
+            Interactive Classroom Projection &amp; Concept Lab
           </p>
         </div>
 
-        {/* DYNAMIC STATUS TEXT WITH SMOOTH FADE TRANSITION */}
-        <div className="h-8 flex items-center justify-center mb-4 px-4">
-          <p className="text-xs sm:text-sm font-extrabold text-slate-700 transition-all duration-300 animate-fade-in flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-amber-500 animate-spin-slow shrink-0" />
+        {/* DYNAMIC PROGRESS STATUS TEXT */}
+        <div className="h-8 flex items-center justify-center px-4">
+          <p className="text-xs sm:text-sm font-extrabold text-slate-800 transition-all duration-300 flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-amber-500 animate-spin shrink-0" />
             <span>{statusMessages[statusIndex]}</span>
           </p>
         </div>
 
-        {/* PROGRESS BAR (HEIGHT 4px / H-1.5, WIDTH 240px / W-60) */}
-        <div className="w-60 bg-slate-200 h-1.5 rounded-full overflow-hidden mb-2 shadow-inner">
+        {/* PROGRESS BAR */}
+        <div className="w-64 bg-slate-200 h-2 rounded-full overflow-hidden shadow-inner">
           <div
-            className="h-full bg-gradient-to-r from-indigo-600 via-indigo-500 to-teal-500 rounded-full transition-all duration-150 ease-out"
+            className="h-full bg-gradient-to-r from-blue-600 via-indigo-600 to-teal-500 rounded-full transition-all duration-150 ease-out"
             style={{ width: `${progress}%` }}
           />
         </div>
 
-        {/* PERCENTAGE TEXT BELOW PROGRESS BAR */}
-        <div className="flex items-center justify-between w-60 text-[11px] font-bold text-slate-400">
-          <span className="flex items-center gap-1">
-            <ShieldCheck className="w-3.5 h-3.5 text-teal-600" />
-            <span>Keamanan Terverifikasi</span>
+        {/* DUAL-ENGINE CONNECTIVITY NETWORK BADGE BELOW */}
+        <div className="pt-2 flex flex-col items-center gap-2">
+          <span className="px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-bold flex items-center gap-1.5 shadow-xs">
+            <Wifi className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
+            <span>⚡ Dual-Engine Connectivity Ready (Latensi: 4ms)</span>
           </span>
-          <span className="font-mono text-indigo-600 font-black">{progress}%</span>
+          <span className="text-[10px] font-mono font-bold text-slate-400">
+            {progress}% Progres Sinkronisasi
+          </span>
         </div>
 
       </div>

@@ -74,14 +74,14 @@ export default function Navbar({ currentUser, onSwitchUser, currentView, onViewC
           </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="font-extrabold text-xl tracking-tight bg-gradient-to-r from-blue-700 via-indigo-600 to-blue-600 bg-clip-text text-transparent">
-                LestTry
+              <span className="font-extrabold text-xl tracking-tight text-slate-900 font-['Plus_Jakarta_Sans']">
+                Lest<span className="text-blue-600">Try</span>
               </span>
-              <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-                PROTOTIPE
+              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                PRO 2026
               </span>
             </div>
-            <p className="text-[11px] text-slate-500 hidden sm:block">Platform Asesmen Kemampuan Akademik</p>
+            <p className="text-[11px] text-slate-500 font-medium hidden sm:block">Interactive Classroom Projection &amp; Concept Lab</p>
           </div>
         </div>
 

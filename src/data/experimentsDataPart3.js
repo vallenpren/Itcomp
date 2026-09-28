@@ -34,40 +34,58 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
       { name: '🌾 Kasus Ledakan Hama (Pestisida)', values: { predatorPop: 5, preyPop: 1800, foodResource: 95 } }
     ],
     calculateConsequence: ({ predatorPop = 30, preyPop = 800, foodResource = 70 } = {}) => {
-      const ratio = preyPop / (predatorPop * 15 + 1);
+      try {
+        const safePred = Number(predatorPop) >= 0 ? Number(predatorPop) : 30;
+        const safePrey = Number(preyPop) >= 0 ? Number(preyPop) : 800;
+        const safeFood = Number(foodResource) >= 0 ? Number(foodResource) : 70;
 
-      if (predatorPop > 75 && preyPop < 300) {
-        return {
-          status: 'danger',
-          badge: 'EXTINCTION CYCLE / KEPUNAHAN GANDA',
-          title: 'Predator Memangsa Seluruh Hama Sampai Habis',
-          description: 'Predator yang terlalu banyak memusnahkan mangsa secara total, lalu disusuli kepunahan predator itu sendiri karena kelaparan!',
-          bagianA: 'Populasi predator yang terlalu dominan mengonsumsi seluruh mangsa hingga habis. Ketika ketersediaan mangsa jatuh ke nol, populasi predator mengalami krisis pangan masif dan punah secara massal.',
-          bagianB: 'Menurut Persamaan Lotka-Volterra dx/dt = αx - βxy, ketika populasi predator y sangat besar, laju kematian mangsa βxy melampaui laju perkembangbiakan αx sehingga x mendadak menyusut ke titik 0.',
-          bagianC: 'Kurangi Populasi Predator ke batas aman (20 - 40 ekor) dan tingkatkan Ketersediaan Pangan Rumput agar daya dukung lingkungan (Carrying Capacity K) tetap terjaga!',
-          metrics: { Ratio: ratio.toFixed(2), Ecosystem: 'Collapsed', PredatorState: 'Starving' }
-        };
-      } else if (predatorPop < 10 && preyPop > 1200) {
+        const ratio = safePrey / (safePred * 15 + 1);
+
+        if (safePred > 75 && safePrey < 300) {
+          return {
+            status: 'danger',
+            badge: 'EXTINCTION CYCLE / KEPUNAHAN GANDA',
+            title: 'Predator Memangsa Seluruh Hama Sampai Habis',
+            description: `Predator (${safePred} ekor) memangsa mangsa (${safePrey} ekor) secara masif, memicu siklus kepunahan.`,
+            bagianA: `Populasi predator (${safePred} ekor) terlalu tinggi memusnahkan mangsa (${safePrey} ekor). Tanpa ketersediaan mangsa, predator akan mengalami krisis kelaparan.`,
+            bagianB: `Persamaan Lotka-Volterra dx/dt = αx - βxy menunjukkan laju kematian mangsa βxy melampaui laju pembiakan αx saat y (${safePred}) sangat besar.`,
+            bagianC: `Kurangi Populasi Predator ke rentang 20-40 ekor (saat ini ${safePred} ekor) dan jaga Pangan Tanaman di ${safeFood}% agar ekosistem seimbang!`,
+            metrics: { Ratio: ratio.toFixed(2), Ecosystem: 'Collapsed', PredatorState: 'Starving' }
+          };
+        } else if (safePred < 10 && safePrey > 1200) {
+          return {
+            status: 'warning',
+            badge: 'LEDAKAN HAMA PERTANIAN',
+            title: 'Hilangnya Predator Alami Memicu Wabah Hama',
+            description: `Populasi hama (${safePrey} ekor) melampaui kapasitas lingkungan karena predator hanya ${safePred} ekor.`,
+            bagianA: `Predator alami yang sangat sedikit (${safePred} ekor) membuat populasi hama (${safePrey} ekor) melonjak tak terkendali merusak vegetasi pangan (${safeFood}%).`,
+            bagianB: `Hilangnya faktor pembatas dy/dt = δxy - γy menyebabkan pertumbuhan mangsa x (${safePrey} ekor) bersifat eksponensial tak terbatas (J-curve).`,
+            bagianC: `Lepaskan Predator Alami hingga ~30 ekor (saat ini ${safePred} ekor) untuk mengaktifkan Biological Pest Control!`,
+            metrics: { Ratio: ratio.toFixed(2), Ecosystem: 'Outbreak', PredatorState: 'Extinct' }
+          };
+        } else {
+          return {
+            status: 'optimal',
+            badge: 'FLUKTUASI EKOLOGI SEIMBANG',
+            title: 'Siklus Rantai Makanan Lotka-Volterra Harmonism',
+            description: `Siklus populasi predator (${safePred}) dan mangsa (${safePrey}) berosilasi seimbang pada daya dukung pangan ${safeFood}%.`,
+            bagianA: `Rantai makanan seimbang! Fluktuasi populasi predator (${safePred} ekor) dan mangsa (${safePrey} ekor) berjalan teratur sesuai siklus alami.`,
+            bagianB: `Model Lotka-Volterra berada pada fase orbit tertutup di mana turunan dx/dt dan dy/dt berada pada kesetimbangan dinamis.`,
+            bagianC: `Ekosistem berada dalam kondisi sehat! Uji variasi ketersediaan pangan tanaman untuk melihat respon osilasi populasi.`,
+            metrics: { Ratio: ratio.toFixed(2), Ecosystem: 'Balanced', PredatorState: 'Stable' }
+          };
+        }
+      } catch (err) {
+        console.error("Error calculating 4A consequence:", err);
         return {
           status: 'warning',
-          badge: 'LEDAKAN HAMA PERTANIAN',
-          title: 'Hilangnya Predator Alami Memicu Wabah Hama',
-          description: 'Populasi mangsa melampaui daya dukung lingkungan (carrying capacity), menghancurkan seluruh vegetasi pertanian.',
-          bagianA: 'Ekosistem kehilangan pemangsa alami. Populasi mangsa/tikus melonjak tanpa kendali, mengosongkan seluruh cadangan makanan vegetasi pertanian.',
-          bagianB: 'Hilangnya faktor pembatas dy/dt = δxy - γy menyebabkan pertumbuhan mangsa menjadi eksponensial tak terbatas (J-curve), melampaui ambang batas kestabilan ekologi.',
-          bagianC: 'Lepaskan Predator Alami di kisaran 30 ekor untuk mengembalikan mekanisme kontrol biologis (Biological Pest Control) secara alami!',
-          metrics: { Ratio: ratio.toFixed(2), Ecosystem: 'Outbreak', PredatorState: 'Extinct' }
-        };
-      } else {
-        return {
-          status: 'optimal',
-          badge: 'FLUKTUASI EKOLOGI SEIMBANG',
-          title: 'Siklus Rantai Makanan Lotka-Volterra Harmonism',
-          description: 'Grafik populasi mangsa dan pemangsa membentuk gelombang sinus konstan yang menjaga keseimbangan hayati.',
-          bagianA: 'Rantai makanan beroperasi dalam siklus alami yang harmonis. Puncak populasi mangsa akan disusul kenaikan predator, yang kemudian menekan kembali populasi mangsa secara teratur.',
-          bagianB: 'Model Lotka-Volterra berada pada lintasan siklus tertutup (Phase Orbit) di mana turunan dx/dt dan dy/dt berada pada titik kesetimbangan dinamis.',
-          bagianC: 'Ekosistem padang rumput berada dalam kondisi sangat sehat. Anda dapat menguji perubahan daya dukung pangan untuk mengamati respon siklus populasi!',
-          metrics: { Ratio: ratio.toFixed(2), Ecosystem: 'Balanced', PredatorState: 'Stable' }
+          badge: 'EVALUASI DIPERBARUI',
+          title: 'Kalkulasi Ekosistem Diproses',
+          description: 'Sistem memperbarui dinamika Lotka-Volterra.',
+          bagianA: 'Parameter populasi sedang dihitung.',
+          bagianB: 'Model Lotka-Volterra disesuaikan dinamis.',
+          bagianC: 'Geser slider parameter ekosistem.',
+          metrics: { Status: 'Active' }
         };
       }
     },
@@ -109,41 +127,59 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
       { name: '💉 Kasus Bius Lokal Blocked', values: { sodiumConc: 15, myelinSheath: 7, stimulusVoltage: 10 } }
     ],
     calculateConsequence: ({ sodiumConc = 120, myelinSheath = 8, stimulusVoltage = 15 } = {}) => {
-      const speed = Math.round((myelinSheath * 12) + (sodiumConc / 10));
-      const peakVoltage = stimulusVoltage > 10 ? 30 : -70;
+      try {
+        const safeNa = Number(sodiumConc) >= 0 ? Number(sodiumConc) : 120;
+        const safeMyelin = Number(myelinSheath) >= 0 ? Number(myelinSheath) : 8;
+        const safeStim = !isNaN(Number(stimulusVoltage)) ? Number(stimulusVoltage) : 15;
 
-      if (sodiumConc < 30) {
-        return {
-          status: 'danger',
-          badge: 'IMPULS TERBLOKIR / ANESTESI',
-          title: 'Depolarisasi Membran Gagal Terjadi',
-          description: 'Konsentrasi ion Natrium luar terlalu rendah. Voltase tidak dapat menembus ambang batas (threshold -55mV) sehingga sinyal saraf terputus.',
-          bagianA: 'Konsentrasi ion Na+ ekstraseluler tidak mencukupi untuk memicu masuknya muatan positif ke dalam akson. Impuls sinyal sakit/gerak terhenti total sebelum sampai ke otak.',
-          bagianB: 'Persamaan Nernst/Goldman membuktikan tanpa gradien konsentrasi [Na+]_o yang cukup, voltase membran gagal melewati ambang depolarisasi -55 mV untuk membuka Voltage-Gated Sodium Channels.',
-          bagianC: 'Naiikkan Konsentrasi Ion Na+ di atas 80 mM untuk mengembalikan fungsi penghantaran sinyal listrik saraf secara normal!',
-          metrics: { Speed: '0 m/s', PeakVolt: '-70 mV', Conduction: 'Blocked' }
-        };
-      } else if (myelinSheath < 3) {
+        const speed = Math.round((safeMyelin * 12) + (safeNa / 10));
+        const peakVoltage = safeStim > 10 ? 30 : -70;
+
+        if (safeNa < 30) {
+          return {
+            status: 'danger',
+            badge: 'IMPULS TERBLOKIR / ANESTESI',
+            title: 'Depolarisasi Membran Gagal Terjadi',
+            description: `Konsentrasi ion Na+ (${safeNa} mM) terlalu rendah untuk melewati threshold -55mV. Sinyal terputus.`,
+            bagianA: `Ion Na+ (${safeNa} mM) tidak mencukupi memicu arus depolarisasi. Impuls sinyal sakit/gerak terhenti total sebelum sampai ke otak (efek bius).`,
+            bagianB: `Persamaan Goldman-Hodgkin-Katz membuktikan tanpa gradien [Na+]o (${safeNa} mM) mencukupi, voltase gagal membuka Voltage-Gated Na+ Channels.`,
+            bagianC: `Naikkan Konsentrasi Ion Na+ di atas 80 mM (saat ini ${safeNa} mM) untuk memulihkan penghantaran sinyal saraf!`,
+            metrics: { Speed: '0 m/s', PeakVolt: '-70 mV', Conduction: 'Blocked' }
+          };
+        } else if (safeMyelin < 3) {
+          return {
+            status: 'warning',
+            badge: 'SANGAT LAMBAT / DE-MYELINATED',
+            title: 'Kebocoran Listrik Saraf Tanpa Mielin',
+            description: `Isolator mielin tipis (${safeMyelin} μm) menurunkan kecepatan hantar saraf ke ${speed} m/s.`,
+            bagianA: `Mielin setebal ${safeMyelin} μm menyebabkan arus listrik bocor menembus akson, memangkas kecepatan hantar saraf menjadi ${speed} m/s (Multiple Sclerosis).`,
+            bagianB: `Tanpa isolasi mielin (${safeMyelin} μm), hambatan membran Rm turun sehingga impuls tidak dapat melakukan konduksi saltatori antar Nodus Ranvier.`,
+            bagianC: `Tingkatkan Ketebalan Lapisan Mielin di atas 6 μm (saat ini ${safeMyelin} μm) untuk mengaktifkan loncatan saltatori cepat!`,
+            metrics: { Speed: `${speed} m/s`, PeakVolt: `${peakVoltage} mV`, Conduction: 'Slow' }
+          };
+        } else {
+          return {
+            status: 'optimal',
+            badge: 'TRANSMISI IMPULS PRESISI',
+            title: 'Konduksi Saltatori Super Cepat',
+            description: `Impuls saraf terkonduksi secepat ${speed} m/s dengan puncak depolarisasi ${peakVoltage} mV.`,
+            bagianA: `Saraf menghantarkan impuls listrik secepat ${speed} m/s! Depolarisasi melompat efisien antar Nodus Ranvier dengan lapisan mielin ${safeMyelin} μm.`,
+            bagianB: `Gradien ion Na+ (${safeNa} mM) dan resistansi isolasi mielin ${safeMyelin} μm mendukung Saltatory Conduction berdaya efisien.`,
+            bagianC: `Transmisi impuls berada pada puncak kesehatan! Uji penurun konsentrasi ion Natrium untuk mensimulasikan efek anestesi.`,
+            metrics: { Speed: `${speed} m/s`, PeakVolt: `${peakVoltage} mV`, Conduction: 'Saltatory Fast' }
+          };
+        }
+      } catch (err) {
+        console.error("Error calculating 4B consequence:", err);
         return {
           status: 'warning',
-          badge: 'SANGAT LAMBAT / DE-MYELINATED',
-          title: 'Kebocoran Listrik Saraf Tanpa Mielin',
-          description: 'Lapisan isolator mielin terdegradasi. Impuls tidak bisa melompat (konduksi saltatori) di Nodus Ranvier.',
-          bagianA: 'Mielin yang tipis/rusak menyebabkan muatan listrik bocor keluar menembus membran akson. Kecepatan hantar saraf drop dari 120 m/s menjadi di bawah 10 m/s (gejala Multiple Sclerosis).',
-          bagianB: 'Tanpa isolasi mielin, hambatan membran Rm turun drastis sehingga konstanta jarak λ menyusut. Sinyal harus merambat titik-demi-titik tanpa loncatan saltatori.',
-          bagianC: 'Tingkatkan Ketebalan Lapisan Mielin di atas 6 μm untuk mengaktifkan loncatan saltatori antar Nodus Ranvier!',
-          metrics: { Speed: `${speed} m/s`, PeakVolt: `${peakVoltage} mV`, Conduction: 'Slow' }
-        };
-      } else {
-        return {
-          status: 'optimal',
-          badge: 'TRANSMISI IMPULS PRESISI',
-          title: 'Konduksi Saltatori Super Cepat',
-          description: 'Pompa Na+/K+ ATP-ase dan lapisan mielin bekerja sempurna mengirimkan impuls saraf secepat 120 meter/detik!',
-          bagianA: 'Saraf menghantarkan sinyal refleks dengan kecepatan luar biasa tinggi. Arus depolarisasi melompat efisien dari satu Nodus Ranvier ke Nodus Ranvier berikutnya.',
-          bagianB: 'Gradien ionik Na+/K+ dan resistansi isolasi mielin tinggi memaksa impuls meloncat (Saltatory Conduction) dengan efisiensi energi ATP maksimum.',
-          bagianC: 'Transmisi impuls saraf berada pada kondisi kesehatan puncak. Anda bisa menguji efek bius lokal dengan menurunkan konsentrasi ion Natrium.',
-          metrics: { Speed: `${speed} m/s`, PeakVolt: `${peakVoltage} mV`, Conduction: 'Saltatory Fast' }
+          badge: 'EVALUASI DIPERBARUI',
+          title: 'Kalkulasi Impuls Saraf Diproses',
+          description: 'Sistem memperbarui konduksi impuls akson.',
+          bagianA: 'Parameter bio-listrik sedang dihitung.',
+          bagianB: 'Persamaan Goldman Vm disesuaikan dinamis.',
+          bagianC: 'Geser slider parameter saraf.',
+          metrics: { Status: 'Active' }
         };
       }
     },
@@ -185,32 +221,49 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
       { name: '⚠️ Kasus Mutasi Dominan Tertekan', values: { dominantFreqP: 0.2, naturalSelection: 80, generations: 4 } }
     ],
     calculateConsequence: ({ dominantFreqP = 0.7, naturalSelection = 20, generations = 3 } = {}) => {
-      const q = 1 - dominantFreqP;
-      const p2 = Math.round(Math.pow(dominantFreqP, 2) * 100);
-      const pq2 = Math.round(2 * dominantFreqP * q * 100);
-      const q2 = 100 - p2 - pq2;
+      try {
+        const safeP = Math.max(0.01, Math.min(0.99, Number(dominantFreqP) || 0.7));
+        const safeGen = Math.max(1, Math.min(5, Number(generations) || 3));
 
-      if (q2 > 35) {
+        const q = 1 - safeP;
+        const p2 = Math.round(Math.pow(safeP, 2) * 100);
+        const pq2 = Math.round(2 * safeP * q * 100);
+        const q2 = Math.max(0, 100 - p2 - pq2);
+
+        if (q2 > 35) {
+          return {
+            status: 'danger',
+            badge: 'RISIKO FENOTIPE HOMOZIGOT RESESIF TINGGI',
+            title: 'Frekuensi Alel Pembawa Sifat Penyakit Tinggi',
+            description: `${q2}% keturunan generasi F${safeGen} berisiko mengekspresikan penyakit resesif (aa) karena p=${safeP}.`,
+            bagianA: `Frekuensi alel resesif q (${q.toFixed(2)}) terlalu tinggi. Sebesar ${q2}% keturunan generasi F${safeGen} bergenotipe homozigot resesif aa.`,
+            bagianB: `Sesuai Hardy-Weinberg p² + 2pq + q² = 1, saat frekuensi p=${safeP}, proporsi mutasi resesif q²=${q2}% melonjak melebihi ambang batas aman populasi.`,
+            bagianC: `Gunakan terapi rekayasa genetik CRISPR Cas-9 atau tingkatkan frekuensi alel dominan p di atas 0.7 (saat ini ${safeP})!`,
+            metrics: { AA: `${p2}%`, Aa: `${pq2}%`, aa: `${q2}%` }
+          };
+        } else {
+          return {
+            status: 'optimal',
+            badge: 'VARIASI GENETIK SEHAT OPTIMAL',
+            title: 'Distribusi Genotipe Terkontrol Sempurna',
+            description: `Distribusi keturunan F${safeGen}: AA=${p2}%, Aa=${pq2}%, aa=${q2}% berada pada rasio genetik aman.`,
+            bagianA: `Populasi memiliki ketahanan genetik prima pada generasi F${safeGen}. ${p2}% bergenotipe AA dominan sehat dan ${pq2}% heterozigot carrier Aa.`,
+            bagianB: `Hukum Segregasi Bebas Mendel dan kesetimbangan Hardy-Weinberg p² + 2pq + q² = 1 terdistribusi seimbang pada p=${safeP}.`,
+            bagianC: `Kombinasi genetik berada pada titik paling ideal! Uji simulasi persilangan hingga generasi F5.`,
+            metrics: { AA: `${p2}%`, Aa: `${pq2}%`, aa: `${q2}%` }
+          };
+        }
+      } catch (err) {
+        console.error("Error calculating 4C consequence:", err);
         return {
-          status: 'danger',
-          badge: 'RISIKO FENOTIPE HOMOZIGOT RESESIF TINGGI',
-          title: 'Frekuensi Alel Pembawa Sifat Penyakit Tinggi',
-          description: `Tanpa seleksi atau pengeditan genetik CRISPR, ${q2}% keturunan generasi F${generations} berisiko mengekspresikan penyakit resesif.`,
-          bagianA: 'Frekuensi alel mutasi resesif q di dalam populasi terlalu dominan. Persentase keturunan bergenotipe homozigot resesif (aa) membengkak, memicu manifestasi penyakit genetik.',
-          bagianB: 'Sesuai Hukum Hardy-Weinberg p² + 2pq + q² = 1, saat frekuensi p rendah (p < 0.4), proporsi q² = (1-p)² melonjak secara kuadratik melebihi ambang batas toleransi populasi.',
-          bagianC: 'Gunakan terapi rekayasa genetik CRISPR Cas-9 untuk memperbaiki alel resesif atau tingkatkan frekuensi alel dominan p di atas 0.7!',
-          metrics: { AA: `${p2}%`, Aa: `${pq2}%`, aa: `${q2}%` }
-        };
-      } else {
-        return {
-          status: 'optimal',
-          badge: 'VARIASI GENETIK SEHAT OPTIMAL',
-          title: 'Distribusi Genotipe Terkontrol Sempurna',
-          description: `Kombinasi alel dominan dan perbaikan CRISPR mempertahankan ${p2}% dominan sehat dengan persentase fenotipe unggul.`,
-          bagianA: 'Populasi memiliki ketahanan genetik yang sangat baik. Sebagian besar individu mengekspresikan fenotipe unggul dominan, sedangkan alel resesif tetap berada pada ambang aman.',
-          bagianB: 'Hukum Segregasi Bebas Mendel dan kesetimbangan alel p & q terdistribusi secara seimbang sesuai ekspansi polinomial kuadrat (p + q)²',
-          bagianC: 'Kombinasi genetik berada pada titik paling ideal! Anda dapat mensimulasikan persilangan generasi berikutnya F1 - F5.',
-          metrics: { AA: `${p2}%`, Aa: `${pq2}%`, aa: `${q2}%` }
+          status: 'warning',
+          badge: 'EVALUASI DIPERBARUI',
+          title: 'Kalkulasi Genotipe Diproses',
+          description: 'Sistem memperbarui frekuensi alel Hardy-Weinberg.',
+          bagianA: 'Parameter persilangan genetik sedang dihitung.',
+          bagianB: 'Persamaan p² + 2pq + q² = 1 diperbarui dinamis.',
+          bagianC: 'Geser slider frekuensi alel p.',
+          metrics: { Status: 'Active' }
         };
       }
     },
@@ -252,44 +305,62 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
       { name: '🏷️ Kasus Diskon Hancur Harga', values: { priceRp: 12000, consumerIncome: 110, competitorPrice: 50000 } }
     ],
     calculateConsequence: ({ priceRp = 50000, consumerIncome = 100, competitorPrice = 45000 } = {}) => {
-      const baseDemand = 1000 * (consumerIncome / 100);
-      const priceRatio = priceRp / competitorPrice;
-      const quantity = Math.max(50, Math.round(baseDemand / Math.pow(priceRatio, 2)));
-      const totalRevenue = priceRp * quantity;
-      const ped = Math.abs((1 - quantity / baseDemand) / (1 - priceRatio));
+      try {
+        const safePrice = Number(priceRp) > 0 ? Number(priceRp) : 50000;
+        const safeIncome = Number(consumerIncome) > 0 ? Number(consumerIncome) : 100;
+        const safeComp = Number(competitorPrice) > 0 ? Number(competitorPrice) : 45000;
 
-      if (priceRatio > 2.5) {
-        return {
-          status: 'danger',
-          badge: 'PEMBELI KABUR / ELASTIS EKSTREM',
-          title: 'Harga Terlalu Mahal Dibanding Kompetitor',
-          description: 'Konsentrasi pembeli beralih total ke barang substitusi. Total Revenue anjlok drastis!',
-          bagianA: 'Harga produk dipatok terlalu tinggi dibanding produk pesaing. Konsumen secara masif beralih ke toko sebelah yang menawarkan fungsi serupa dengan harga jauh lebih rasional.',
-          bagianB: 'Nilai Elastisitas Harga Permintaan PED |Ep| > 1 menunjukkan barang bersifat elastis. Kenaikan harga %ΔP memicu penurunan jumlah unit yang diminta %ΔQ dalam persentase yang jauh lebih besar.',
-          bagianC: 'Turunkan Harga Jual ke kisaran Rp 450.000 - Rp 550.000 untuk menemukan titik keseimbangan optimum yang memaksimalkan Total Revenue (P x Q)!',
-          metrics: { PED: ped.toFixed(2), Quantity: `${quantity} pcs`, Revenue: `Rp ${(totalRevenue / 1000000).toFixed(1)}Jt` }
-        };
-      } else if (priceRp < competitorPrice * 0.4) {
+        const baseDemand = 1000 * (safeIncome / 100);
+        const priceRatio = safePrice / safeComp;
+        const quantity = Math.max(50, Math.round(baseDemand / Math.pow(priceRatio, 2)));
+        const totalRevenue = safePrice * quantity;
+        const ped = Math.abs((1 - quantity / Math.max(1, baseDemand)) / (1 - priceRatio || 0.001));
+
+        if (priceRatio > 2.5) {
+          return {
+            status: 'danger',
+            badge: 'PEMBELI KABUR / ELASTIS EKSTREM',
+            title: 'Harga Terlalu Mahal Dibanding Kompetitor',
+            description: `Harga Rp ${safePrice.toLocaleString()} (2.5x kompetitor Rp ${safeComp.toLocaleString()}) membuat permintaan anjlok ke ${quantity} pcs!`,
+            bagianA: `Harga produk (Rp ${safePrice.toLocaleString()}) terlalu mahal dibanding kompetitor (Rp ${safeComp.toLocaleString()}). Konsumen beralih ke toko sebelah.`,
+            bagianB: `Nilai Elastisitas PED |Ep| = ${ped.toFixed(2)} > 1 menunjukkan barang bersifat elastis. Kenaikan harga %ΔP menurunkan kuantitas %ΔQ secara drastis.`,
+            bagianC: `Turunkan harga jual ke kisaran Rp ${Math.round(safeComp * 1.1).toLocaleString()} agar omset Total Revenue (P x Q) naik!`,
+            metrics: { PED: ped.toFixed(2), Quantity: `${quantity} pcs`, Revenue: `Rp ${(totalRevenue / 1000000).toFixed(1)}Jt` }
+          };
+        } else if (safePrice < safeComp * 0.4) {
+          return {
+            status: 'warning',
+            badge: 'MARGIN UNTUNG NIPIS',
+            title: 'Perang Harga Terlalu Murah',
+            description: `Harga Rp ${safePrice.toLocaleString()} terlalu murah dibanding kompetitor (Rp ${safeComp.toLocaleString()}).`,
+            bagianA: `Toko kehabisan stok (${quantity} pcs terjual) karena harga Rp ${safePrice.toLocaleString()} terlalu murah. Omset tidak menutup biaya operasional!`,
+            bagianB: `Penetapan harga jauh di bawah ekuilibrium pasar menyebabkan kerugian potensi pendapatan (Producer Surplus Loss).`,
+            bagianC: `Naikkan harga secara bertahap mendekati Rp ${Math.round(safeComp * 0.9).toLocaleString()} untuk amankan margin!`,
+            metrics: { PED: ped.toFixed(2), Quantity: `${quantity} pcs`, Revenue: `Rp ${(totalRevenue / 1000000).toFixed(1)}Jt` }
+          };
+        } else {
+          return {
+            status: 'optimal',
+            badge: 'TOTAL REVENUE MAKSIMAL',
+            title: 'Titik Ekuilibrium Harga Optimal',
+            description: `Penjualan ${quantity} pcs pada harga Rp ${safePrice.toLocaleString()} menghasilkan Total Revenue Rp ${(totalRevenue / 1000000).toFixed(1)}Jt!`,
+            bagianA: `Produk berada pada titik manis pendapatan tertinggi! Harga Rp ${safePrice.toLocaleString()} seimbang sempurna dengan permintaan ${quantity} pcs.`,
+            bagianB: `Elastisitas berada pada titik Unitari (Ep ≈ -1), di mana turunan pertama Total Revenue d(TR)/dP ≈ 0 mencapai puncak imbalan.`,
+            bagianC: `Strategi penetapan harga e-commerce sangat presisi! Uji perubahan harga kompetitor untuk mengamati pergeseran kurva.`,
+            metrics: { PED: ped.toFixed(2), Quantity: `${quantity} pcs`, Revenue: `Rp ${(totalRevenue / 1000000).toFixed(1)}Jt` }
+          };
+        }
+      } catch (err) {
+        console.error("Error calculating 5A consequence:", err);
         return {
           status: 'warning',
-          badge: 'MARGIN UNTUNG NIPIS',
-          title: 'Perang Harga Terlalu Murah',
-          description: 'Barang laku keras namun Total Revenue tidak menutup biaya operasional dan iklan.',
-          bagianA: 'Toko mengalami kelangkaan stok barang (shortage) karena harga terlalu murah. Walau kuantitas terjual sangat tinggi, margin profit per unit sangat tipis.',
-          bagianB: 'Penetapan harga jauh di bawah harga ekuilibrium pasar menyebabkan kerugian potensi pendapatan (Producer Surplus Loss) akibat marjin yang tak mampu menutup Fixed Cost.',
-          bagianC: 'Naikkan harga secara bertahap menuju harga pesaing untuk mengamankan margin keuntungan yang sehat!',
-          metrics: { PED: ped.toFixed(2), Quantity: `${quantity} pcs`, Revenue: `Rp ${(totalRevenue / 1000000).toFixed(1)}Jt` }
-        };
-      } else {
-        return {
-          status: 'optimal',
-          badge: 'TOTAL REVENUE MAKSIMAL',
-          title: 'Titik Ekuilibrium Harga Optimal',
-          description: 'Poin harga pas pada kurva elastisitas unitari memaksimalkan omset keuntungan e-commerce.',
-          bagianA: 'Produk berada pada titik manis pendapatan tertinggi. Kenaikan marjin keuntungan per unit seimbang sempurna dengan jumlah permintaan keranjang belanja pembeli.',
-          bagianB: 'Elastisitas berada pada titik Unitari (Ep = -1), di mana turunan pertama fungsi Total Revenue d(TR)/dP = 0 mencapai titik puncak matematis (Revenue Maximization).',
-          bagianC: 'Strategi harga toko online Anda sangat presisi! Uji harga toko pesaing untuk mengamati pergeseran kurva permintaan.',
-          metrics: { PED: ped.toFixed(2), Quantity: `${quantity} pcs`, Revenue: `Rp ${(totalRevenue / 1000000).toFixed(1)}Jt` }
+          badge: 'EVALUASI DIPERBARUI',
+          title: 'Kalkulasi E-Commerce Diproses',
+          description: 'Sistem memperbarui elastisitas harga.',
+          bagianA: 'Parameter penetapan harga sedang dihitung.',
+          bagianB: 'Persamaan PED Ep = (dQ/dP)·(P/Q) disesuaikan.',
+          bagianC: 'Geser slider harga jual produk.',
+          metrics: { Status: 'Active' }
         };
       }
     },
@@ -331,42 +402,60 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
       { name: '🧊 Kasus Resesi Ekonomi (Kredit Macet)', values: { biRate: 14, reserveReq: 12, fiscalSpending: 80 } }
     ],
     calculateConsequence: ({ biRate = 6, reserveReq = 5, fiscalSpending = 200 } = {}) => {
-      const moneySupply = fiscalSpending * (10 / reserveReq);
-      const inflation = Math.max(0.5, Math.round((moneySupply / (biRate * 40)) * 10) / 10);
-      const unemployment = Math.round(biRate * 0.9 + 3);
+      try {
+        const safeRate = Number(biRate) > 0 ? Number(biRate) : 6;
+        const safeGwm = Number(reserveReq) > 0 ? Number(reserveReq) : 5;
+        const safeFiscal = Number(fiscalSpending) > 0 ? Number(fiscalSpending) : 200;
 
-      if (inflation > 10) {
-        return {
-          status: 'danger',
-          badge: 'HIPERINFLASI / DAYA BELI COLLAPSE',
-          title: 'Uang Beredar Melimpah Ruah',
-          description: 'Suku bunga terlalu rendah dan belanja fiskal tinggi menyebabkan harga kebutuhan pokok melambung gila-gilaan!',
-          bagianA: 'Jumlah uang beredar melimpah di pasar melebihi pertumbuhan barang riil. Konsumen memegang banyak uang tetapi daya beli merosot tajam karena harga sembako melambung.',
-          bagianB: 'Menurut Persamaan Kuantitas Uang Irving Fisher MV = PY, jika M (Uang Beredar) naik drastis tanpa diimbangi kenaikan Y (Output Riil), tingkat harga P akan terdorong ke zona hiperinflasi.',
-          bagianC: 'Naikkan Suku Bunga Acuan BI-Rate ke kisaran 6% - 8% untuk menyedot kelebihan uang beredar kembali ke perbankan!',
-          metrics: { Inflation: `${inflation}%`, Unemployment: `${unemployment}%`, Growth: 'Stagflation' }
-        };
-      } else if (biRate > 11) {
+        const moneySupply = safeFiscal * (10 / safeGwm);
+        const inflation = Math.max(0.5, Math.round((moneySupply / (safeRate * 40)) * 10) / 10);
+        const unemployment = Math.round(safeRate * 0.9 + 3);
+
+        if (inflation > 10) {
+          return {
+            status: 'danger',
+            badge: 'HIPERINFLASI / DAYA BELI COLLAPSE',
+            title: 'Uang Beredar Melimpah Ruah',
+            description: `BI-Rate ${safeRate}% terlalu rendah & fiskal ${safeFiscal}T memicu inflasi ${inflation}%!`,
+            bagianA: `Jumlah uang beredar melimpah di pasar melebihi barang riil. Inflasi melonjak ke ${inflation}%, mengikis daya beli masyarakat secara drastis.`,
+            bagianB: `Menurut Persamaan Kuantitas Uang Irving Fisher MV = PY, Uang Beredar M yang berlebih tanpa diimbangi Output Y mendorong harga P naik ke ${inflation}%.`,
+            bagianC: `Naikkan Suku Bunga BI-Rate di atas 7% (saat ini ${safeRate}%) atau tingkatkan GWM (saat ini ${safeGwm}%) untuk menyerap likuiditas!`,
+            metrics: { Inflation: `${inflation}%`, Unemployment: `${unemployment}%`, Growth: 'Stagflation' }
+          };
+        } else if (safeRate > 11) {
+          return {
+            status: 'warning',
+            badge: 'RESESI / KREDIT MACET',
+            title: 'Suku Bunga Terlalu Mencekik Pengusaha',
+            description: `BI-Rate ${safeRate}% terlalu tinggi. Bunga pinjaman mahal menaikkan pengangguran ke ${unemployment}%.`,
+            bagianA: `Kebijakan uang sangat ketat (BI-Rate ${safeRate}%). Pengusaha enggan mengambil kredit ekspansi sehingga tingkat pengangguran naik ke ${unemployment}%.`,
+            bagianB: `Mengacu pada Kurva Phillips, penekanan inflasi ekstrem (${inflation}%) lewat suku bunga tinggi ${safeRate}% mengorbankan tingkat kesempatan kerja.`,
+            bagianC: `Turunkan BI-Rate ke level moderat 5.5% - 7% (saat ini ${safeRate}%) agar dunia usaha kembali melakukan investasi!`,
+            metrics: { Inflation: `${inflation}%`, Unemployment: `${unemployment}%`, Growth: 'Slowdown' }
+          };
+        } else {
+          return {
+            status: 'optimal',
+            badge: 'STABILITAS MONETER PRESISI',
+            title: 'Keseimbangan Kurva Phillips & Fisher',
+            description: `Inflasi terkendali di ${inflation}% dan pengangguran di ${unemployment}% dengan BI-Rate ${safeRate}%.`,
+            bagianA: `Kondisi moneter sangat stabil! BI-Rate ${safeRate}% dan GWM ${safeGwm}% menjaga inflasi tetap di target ${inflation}% dan ekonomi tumbuh sehat.`,
+            bagianB: `Harmonisasi suku bunga acuan BI-Rate dan Giro Wajib Minimum menjaga tingkat inflasi inti πe pada koridor target Bank Indonesia.`,
+            bagianC: `Stabilitas moneter berada di titik ideal! Uji respon kebijakan dengan mengubah belanja fiskal pemerintah.`,
+            metrics: { Inflation: `${inflation}%`, Unemployment: `${unemployment}%`, Growth: 'Healthy +5.2%' }
+          };
+        }
+      } catch (err) {
+        console.error("Error calculating 5B consequence:", err);
         return {
           status: 'warning',
-          badge: 'RESESI / KREDIT MACET',
-          title: 'Suku Bunga Terlalu Mencekik Pengusaha',
-          description: 'Dunia usaha berhenti ekspansi karena bunga pinjaman bank mahal, memicu pengangguran naik.',
-          bagianA: 'Kebijakan uang sangat ketat (Tight Money Policy). Bunga pinjaman yang terlampau tinggi menyebabkan pengusaha enggan mengambil kredit usaha, memicu gelombang PHK.',
-          bagianB: 'Mengacu pada Kurva Phillips jangka pendek, penekanan inflasi ekstrem lewat peningkatan suku bunga i akan mengorbankan tingkat kesempatan kerja (Unemployment melonjak).',
-          bagianC: 'Turunkan BI-Rate ke level moderat (5.5% - 7%) agar bisnis dapat kembali melakukan investasi ekspansi!',
-          metrics: { Inflation: `${inflation}%`, Unemployment: `${unemployment}%`, Growth: 'Slowdown' }
-        };
-      } else {
-        return {
-          status: 'optimal',
-          badge: 'STABILITAS MONETER PRESISI',
-          title: 'Keseimbangan Kurva Phillips & Fisher',
-          description: 'Inflasi terkendali di kisaran target 2-3% dengan laju pertumbuhan ekonomi yang sehat.',
-          bagianA: 'Neraca moneter berada pada titik kestabilan ideal. Harga kebutuhan pokok terjangkau, daya beli terjaga, dan penciptaan lapangan kerja terus bertumbuh.',
-          bagianB: 'Harmonisasi suku bunga acuan BI-Rate dan Giro Wajib Minimum menjaga tingkat inflasi inti πe pada koridor target Bank Indonesia.',
-          bagianC: 'Kondisi ekonomi makro sangat stabil! Uji kejutan fiskal dengan menaikkan Belanja Pemerintah.',
-          metrics: { Inflation: `${inflation}%`, Unemployment: `${unemployment}%`, Growth: 'Healthy +5.2%' }
+          badge: 'EVALUASI DIPERBARUI',
+          title: 'Kalkulasi Moneter Diproses',
+          description: 'Sistem memperbarui indikator inflasi.',
+          bagianA: 'Parameter moneter sedang dihitung.',
+          bagianB: 'Persamaan Fisher MV = PY disesuaikan dinamis.',
+          bagianC: 'Geser slider BI-Rate.',
+          metrics: { Status: 'Active' }
         };
       }
     },
@@ -408,43 +497,61 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
       { name: '🛡️ Kasus Konservatif Aman Rendah', values: { stocksWeight: 10, bondsWeight: 90, marketVolatility: 15 } }
     ],
     calculateConsequence: ({ stocksWeight = 60, bondsWeight = 40, marketVolatility = 20 } = {}) => {
-      const totalAlloc = stocksWeight + bondsWeight;
-      const expectedReturn = (stocksWeight * 0.15 + bondsWeight * 0.06).toFixed(1);
-      const portfolioRisk = Math.round((stocksWeight / 100) * marketVolatility + (bondsWeight / 100) * 4);
-      const sharpeRatio = ((expectedReturn - 4) / (portfolioRisk + 1)).toFixed(2);
+      try {
+        const safeStocks = !isNaN(Number(stocksWeight)) ? Number(stocksWeight) : 60;
+        const safeBonds = !isNaN(Number(bondsWeight)) ? Number(bondsWeight) : 40;
+        const safeVix = Number(marketVolatility) > 0 ? Number(marketVolatility) : 20;
 
-      if (totalAlloc !== 100) {
+        const totalAlloc = safeStocks + safeBonds;
+        const expectedReturn = (safeStocks * 0.15 + safeBonds * 0.06).toFixed(1);
+        const portfolioRisk = Math.round((safeStocks / 100) * safeVix + (safeBonds / 100) * 4);
+        const sharpeRatio = ((parseFloat(expectedReturn) - 4) / (portfolioRisk + 1)).toFixed(2);
+
+        if (totalAlloc !== 100) {
+          return {
+            status: 'warning',
+            badge: 'ALOKASI HARUS 100%',
+            title: 'Total Alokasi Aset Tidak Genap 100%',
+            description: `Total persentase saat ini adalah ${totalAlloc}%. Sesuaikan slider agar jumlah saham + obligasi = 100%.`,
+            bagianA: `Alokasi saat ini (${safeStocks}% saham + ${safeBonds}% obligasi = ${totalAlloc}%) tidak genap 100% dari total modal.`,
+            bagianB: 'Bobot alokasi w_A + w_B harus bernilai 1.0 (100%) agar kalkulasi return E(Rp) dan risiko σp² valid.',
+            bagianC: 'Geser slider saham atau obligasi agar total alokasi tepat 100%!',
+            metrics: { Return: `${expectedReturn}%`, Risk: `${portfolioRisk}%`, Sharpe: sharpeRatio }
+          };
+        } else if (safeStocks > 90 && safeVix > 40) {
+          return {
+            status: 'danger',
+            badge: 'RISIKO KEJATUHAN MODAL EXTREME',
+            title: 'Portofolio Terlalu Rentan Badai Pasar',
+            description: `Volatilitas VIX ${safeVix} pts dengan alokasi saham ${safeStocks}% berisiko memangkas modal portofolio!`,
+            bagianA: `Portofolio berisiko tinggi karena ${safeStocks}% dana terkonsentrasi pada saham di tengah volatilitas pasar VIX ${safeVix} pts.`,
+            bagianB: `Tanpa kovarians negatif σAB dari obligasi, varians portofolio σp² melonjak mengikuti volatilitas VIX (${safeVix} pts).`,
+            bagianC: `Tambahkan alokasi Obligasi minimal 30% - 40% (saat ini ${safeBonds}%) untuk meredam risiko penurunan modal!`,
+            metrics: { Return: `${expectedReturn}%`, Risk: `${portfolioRisk}%`, Sharpe: sharpeRatio }
+          };
+        } else {
+          return {
+            status: 'optimal',
+            badge: 'EFFICIENT FRONTIER OPTIMAL',
+            title: 'Rasio Sharpe Tinggi (Risk-Adjusted Return)',
+            description: `Portofolio (${safeStocks}% saham / ${safeBonds}% obligasi) mencapai Sharpe Ratio ${sharpeRatio} pada return ${expectedReturn}%.`,
+            bagianA: `Alokasi portofolio sangat ideal! Perpaduan ${safeStocks}% saham dan ${safeBonds}% obligasi menghasilkan return ${expectedReturn}% dengan risiko terukur ${portfolioRisk}%.`,
+            bagianB: `Alokasi berada pada Efficient Frontier Markowitz dengan Sharpe Ratio optimal (${sharpeRatio}), memaksimalkan Risk-Adjusted Return.`,
+            bagianC: `Portofolio investasi berada dalam kondisi terbaik! Uji tingkat volatilitas pasar VIX untuk melihat daya tahan portofolio.`,
+            metrics: { Return: `${expectedReturn}%`, Risk: `${portfolioRisk}%`, Sharpe: sharpeRatio }
+          };
+        }
+      } catch (err) {
+        console.error("Error calculating 5C consequence:", err);
         return {
           status: 'warning',
-          badge: 'ALOKASI HARUS 100%',
-          title: 'Total Alokasi Aset Tidak Genap 100%',
-          description: `Total persentase saat ini adalah ${totalAlloc}%. Sesuaikan slider agar jumlah saham + obligasi = 100%.`,
-          bagianA: 'Portofolio investasi tidak valid karena alokasi dana melebihi atau kurang dari 100% dari total modal modal kerja.',
-          bagianB: 'Bobot alokasi w_A + w_B harus selalu bernilai 1.0 agar penghitungan return E(Rp) dan varians σp² valid.',
-          bagianC: 'Sesuaikan slider alokasi saham dan obligasi hingga totalnya tepat 100%!',
-          metrics: { Return: `${expectedReturn}%`, Risk: `${portfolioRisk}%`, Sharpe: sharpeRatio }
-        };
-      } else if (stocksWeight > 90 && marketVolatility > 40) {
-        return {
-          status: 'danger',
-          badge: 'RISIKO KEJATUHAN MODAL EXTREME',
-          title: 'Portofolio Terlalu Rentan Badai Pasar',
-          description: 'Tanpa diversifikasi obligasi, kejatuhan pasar saham akan memangkas modal portofolio hingga 50%!',
-          bagianA: 'Portofolio mengalami kerugian besar saat krisis pasar tiba karena 100% dana terkonsentrasi di aset saham berisiko tinggi tanpa perisai obligasi.',
-          bagianB: 'Tanpa kovarians negatif σAB dari aset berisiko rendah, varians portofolio σp² melonjak tinggi mengikuti volatilitas pasar VIX.',
-          bagianC: 'Tambahkan alokasi Obligasi/Surat Utang Negara minimal 30% - 40% untuk meredam potensi kejatuhan nilai portofolio!',
-          metrics: { Return: `${expectedReturn}%`, Risk: `${portfolioRisk}%`, Sharpe: sharpeRatio }
-        };
-      } else {
-        return {
-          status: 'optimal',
-          badge: 'EFFICIENT FRONTIER OPTIMAL',
-          title: 'Rasio Sharpe Tinggi (Risk-Adjusted Return)',
-          description: 'Kombinasi aset meminimalkan varians kovarians sesuai kurva efisien Harry Markowitz.',
-          bagianA: 'Portofolio memiliki daya tahan tinggi terhadap guncangan pasar. Imbal hasil optimal dengan tingkat risiko yang sangat terukur.',
-          bagianB: 'Alokasi berada pada Efficient Frontier Harry Markowitz dengan Sharpe Ratio maksimal (Risk-Adjusted Return tertinggi).',
-          bagianC: 'Struktur portofolio investasi Anda sangat ideal! Tekan tombol Uji Kejutan Pasar untuk menguji ketahanan finansial.',
-          metrics: { Return: `${expectedReturn}%`, Risk: `${portfolioRisk}%`, Sharpe: sharpeRatio }
+          badge: 'EVALUASI DIPERBARUI',
+          title: 'Kalkulasi Portofolio Diproses',
+          description: 'Sistem memperbarui return & risiko Markowitz.',
+          bagianA: 'Parameter alokasi aset sedang dihitung.',
+          bagianB: 'Persamaan Modern Portfolio Theory disesuaikan dinamis.',
+          bagianC: 'Geser slider bobot saham dan obligasi.',
+          metrics: { Status: 'Active' }
         };
       }
     },
@@ -486,31 +593,49 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
       { name: '⚡ Kasus Jaringan Micro Node', values: { warehouseNodes: 5, trafficJam: 1, fuelWeight: 1 } }
     ],
     calculateConsequence: ({ warehouseNodes = 12, trafficJam = 4, fuelWeight = 2 } = {}) => {
-      const evaluatedNodes = warehouseNodes * 3;
-      const totalTimeMin = Math.round(warehouseNodes * 4 * trafficJam);
-      const fuelCost = Math.round(totalTimeMin * 1.5 * fuelWeight);
+      try {
+        const safeNodes = Number(warehouseNodes) >= 0 ? Number(warehouseNodes) : 12;
+        const safeJam = Number(trafficJam) >= 0 ? Number(trafficJam) : 4;
+        const safeFuel = Number(fuelWeight) >= 0 ? Number(fuelWeight) : 2;
 
-      if (trafficJam > 8) {
+        const evaluatedNodes = safeNodes * 3;
+        const totalTimeMin = Math.round(safeNodes * 4 * safeJam);
+        const fuelCost = Math.round(totalTimeMin * 1.5 * safeFuel);
+
+        if (safeJam > 8) {
+          return {
+            status: 'warning',
+            badge: 'BOBOT KEMACETAN TINGGI',
+            title: 'Algoritma Melakukan Rerouting Jalur Alternatif',
+            description: `Kemacetan ${safeJam}x memicu rerouting di ${safeNodes} gudang, waktu tempuh ${totalTimeMin} mnt.`,
+            bagianA: `Kemacetan parah (${safeJam}x) memicu algoritma Dijkstra/A* menghitung ulang bobot edge d(u,v) untuk mengarahkan kurir melalui rute alternatif.`,
+            bagianB: `Algoritma Dijkstra d(v) = min(d(u) + w(u,v)) merevisi lintasan terpendek akibat lonjakan bobot hambatan w(u,v) di ${safeNodes} node gudang.`,
+            bagianC: `Kurangi Tingkat Kemacetan Jalan (saat ini ${safeJam}x) untuk mengembalikan kurir ke jalur utama tercepat!`,
+            metrics: { TravelTime: `${totalTimeMin} Mnt`, NodesEvaluated: evaluatedNodes, FuelCost: `Rp ${fuelCost}K` }
+          };
+        } else {
+          return {
+            status: 'optimal',
+            badge: 'JALUR SHORTEST PATH DITEMUKAN',
+            title: 'Evaluasi Node Graf Himpunan Terbuka Sempurna',
+            description: `Dijkstra/A* menemukan rute optimal melalui ${safeNodes} gudang dalam ${totalTimeMin} mnt (BBM Rp ${fuelCost}K).`,
+            bagianA: `Navigasi logistik berhasil menemukan rute tercepat melewati ${safeNodes} titik gudang dengan total waktu ${totalTimeMin} menit.`,
+            bagianB: `Algoritma Dijkstra & A* mengabaikan cabang simpul berbobot f(n) tinggi, menghasilkan rute paling hemat biaya bensin (faktor ${safeFuel}).`,
+            bagianC: `Rute pengiriman logistik berada pada lintasan paling efisien! Uji tingkat kemacetan tinggi untuk mensimulasikan rerouting instan.`,
+            metrics: { TravelTime: `${totalTimeMin} Mnt`, NodesEvaluated: evaluatedNodes, FuelCost: `Rp ${fuelCost}K` }
+          };
+        }
+      } catch (err) {
+        console.error("Error calculating 6A consequence:", err);
         return {
           status: 'warning',
-          badge: 'BOBOT KEMACETAN TINGGI',
-          title: 'Algoritma Melakukan Rerouting Jalur Alternatif',
-          description: 'Bobot edge graf melambung tinggi. Dijkstra memilih rute melingkar yang lebih panjang tetapi bebas macet.',
-          bagianA: 'Lalu lintas pada ruas jalan utama mengalami kemacetan parah. Algoritma navigasi secara otomatis menghitung ulang bobot edge graf d(u,v) dan mengarahkan kurrier ke rute alternatif yang lebih lancar.',
-          bagianB: 'Algoritma Graf Dijkstra d(v) = min(d(u) + w(u,v)) mengevaluasi ulang matriks tetangga ketika nilai bobot hambatan w(u,v) melonjak akibat kemacetan.',
-          bagianC: 'Kurangi Tingkat Kemacetan Jalan atau aktifkan Rintangan Jalan Ditutup untuk menguji respon algoritma rerouting real-time!',
-          metrics: { TravelTime: `${totalTimeMin} Mnt`, NodesEvaluated: evaluatedNodes, FuelCost: `Rp ${fuelCost}K` }
-        };
-      } else {
-        return {
-          status: 'optimal',
-          badge: 'JALUR SHORTEST PATH DITEMUKAN',
-          title: 'Evaluasi Node Graf Himpunan Terbuka Sempurna',
-          description: 'Algoritma Dijkstra/A* berhasil menemukan rute dengan nilai f(n) paling minimal untuk efisiensi BBM kurir!',
-          bagianA: 'Sistem navigasi berhasil menemukan rute efisien dengan waktu tempuh paling minimum dan konsumsi bahan bakar yang sangat terukur.',
-          bagianB: 'Algoritma pencarian rute terpendek Dijkstra & A* mengabaikan cabang simpul yang memiliki akumulasi bobot f(n) tinggi, menghasilkan lintasan paling efisien.',
-          bagianC: 'Navigasi rute pengiriman berada pada jalur paling optimal! Anda dapat menguji tingkat kemacetan untuk mengamati rerouting instan.',
-          metrics: { TravelTime: `${totalTimeMin} Mnt`, NodesEvaluated: evaluatedNodes, FuelCost: `Rp ${fuelCost}K` }
+          badge: 'EVALUASI DIPERBARUI',
+          title: 'Kalkulasi Logistik Diproses',
+          description: 'Sistem memperbarui rute terpendek Dijkstra.',
+          bagianA: 'Parameter bobot graf sedang dihitung.',
+          bagianB: 'Persamaan Dijkstra d(v) disesuaikan dinamis.',
+          bagianC: 'Geser slider tingkat kemacetan.',
+          metrics: { Status: 'Active' }
         };
       }
     },
@@ -551,31 +676,49 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
       { name: '🔓 Kasus Prima Terlalu Kecil (Mudah Di-hack)', values: { primeP: 11, primeQ: 13, publicKeyE: 3 } }
     ],
     calculateConsequence: ({ primeP = 61, primeQ = 53, publicKeyE = 17 } = {}) => {
-      const n = primeP * primeQ;
-      const phi = (primeP - 1) * (primeQ - 1);
-      const isWeak = n < 1000;
+      try {
+        const safeP = Number(primeP) > 0 ? Number(primeP) : 61;
+        const safeQ = Number(primeQ) > 0 ? Number(primeQ) : 53;
+        const safeE = Number(publicKeyE) > 0 ? Number(publicKeyE) : 17;
 
-      if (isWeak) {
+        const n = safeP * safeQ;
+        const phi = (safeP - 1) * (safeQ - 1);
+        const isWeak = n < 1000;
+
+        if (isWeak) {
+          return {
+            status: 'danger',
+            badge: 'MUDAH DI-HACK / KERENTANAN TINGGI',
+            title: 'Modulus n Terlalu Kecil (Faktorisasi Super Cepat)',
+            description: `Modulus n=${n} (p=${safeP}, q=${safeQ}) sangat kecil. Hacker memfaktorkan n dalam 0.001 detik!`,
+            bagianA: `Ukuran kunci terlalu kecil (n=${n}). Penetas dapat dengan mudah memfaktorkan n menjadi p=${safeP} dan q=${safeQ} untuk menghitung kunci privat d.`,
+            bagianB: `Kerentanan n = p · q (${n}) memungkinkan peretas menghitung φ(n) = ${phi} dan membalikkan eksponen e=${safeE} dalam seketika.`,
+            bagianC: `Perbesar bilangan prima p dan q (saat ini p=${safeP}, q=${safeQ}) untuk menaikkan modulus n ke level RSA-2048 bit!`,
+            metrics: { ModulusN: n, PhiN: phi, SecurityBit: 'Weak (12-bit)' }
+          };
+        } else {
+          return {
+            status: 'optimal',
+            badge: 'ENKRIPSI MILITER RASA AMAN',
+            title: 'Modular Arithmetic Masking Sempurna',
+            description: `Modulus RSA n=${n} (p=${safeP}, q=${safeQ}) dengan e=${safeE} memberikan enkripsi asimetris yang kuat.`,
+            bagianA: `Transaksi perbankan terenkripsi aman! Pesan acak c = m^e mod ${n} tidak dapat didekripsi tanpa kunci privat privat d.`,
+            bagianB: `Keamanan RSA bertumpu pada kesukaran memfaktorkan n=${n} menjadi p=${safeP} dan q=${safeQ} (Prime Factorization Problem).`,
+            bagianC: `Kunci publik e=${safeE} dan modulus n=${n} berada dalam kondisi aman! Uji penurunan nilai prima untuk melihat kerapuhan sistem.`,
+            metrics: { ModulusN: n, PhiN: phi, SecurityBit: 'Strong RSA' }
+          };
+        }
+      } catch (err) {
+        console.error("Error calculating 6B consequence:", err);
         return {
-          status: 'danger',
-          badge: 'MUDAH DI-HACK / KERENTANAN TINGGI',
-          title: 'Modulus n Terlalu Kecil (Faktorisasi Super Cepat)',
-          description: 'Komputer hacker dapat memfaktorkan n menjadi p dan q dalam 0.001 detik dan membobol kunci privat!',
-          bagianA: 'Ukuran kunci enkripsi terlalu kecil. Penetas dapat dengan mudah memfaktorkan perkalian n menjadi p dan q dalam hitungan detik untuk mendekripsi data rahasia.',
-          bagianB: 'Kerentanan matematis faktorisasi prima sederhana n = p · q memungkinkan hacker menghitung nilai φ(n) dan mencari invers eksponen d = e^-1 mod φ(n) dalam waktu singkat.',
-          bagianC: 'Tingkatkan ukuran bilangan prima p dan q untuk memperbesar modulus n hingga level keamanan enkripsi 2048-bit!',
-          metrics: { ModulusN: n, PhiN: phi, SecurityBit: 'Weak (12-bit)' }
-        };
-      } else {
-        return {
-          status: 'optimal',
-          badge: 'ENKRIPSI MILITER RASA AMAN',
-          title: 'Modular Arithmetic Masking Sempurna',
-          description: 'Pesan asli diacak menjadi Ciphertext rumit c = m^e mod n yang tidak bisa didekripsi tanpa d privat.',
-          bagianA: 'Data transaksi perbankan dan PIN terenkripsi dengan sangat aman. Pihak ketiga di saluran internet tidak mampu membaca pesan tanpa kunci privat rahasia.',
-          bagianB: 'Keamanan RSA bergantung pada kesukaran komputasi memfaktorkan n menjadi perkalian dua bilangan prima raksasa (Asymmetric Prime Factorization Problem).',
-          bagianC: 'Kunci enkripsi publik & privat berada dalam tingkat keamanan sangat tinggi! Uji simulasi peretasan data.',
-          metrics: { ModulusN: n, PhiN: phi, SecurityBit: 'Strong RSA' }
+          status: 'warning',
+          badge: 'EVALUASI DIPERBARUI',
+          title: 'Kalkulasi Kriptografi Diproses',
+          description: 'Sistem memperbarui modul n dan φ(n).',
+          bagianA: 'Parameter bilangan prima sedang dihitung.',
+          bagianB: 'Persamaan RSA c = m^e mod n disesuaikan.',
+          bagianC: 'Geser slider bilangan prima p dan q.',
+          metrics: { Status: 'Active' }
         };
       }
     },
@@ -617,42 +760,60 @@ export const BIOLOGY_ECONOMY_INFORMATICS_EXPERIMENTS = {
       { name: '🐌 Kasus Underfitting (Terlalu Lambat)', values: { learningRate: 0.001, hiddenLayers: 1, noiseInput: 40 } }
     ],
     calculateConsequence: ({ learningRate = 0.05, hiddenLayers = 4, noiseInput = 10 } = {}) => {
-      let accuracy = 99 - noiseInput * 0.5 - (learningRate > 0.3 ? (learningRate - 0.3) * 100 : 0);
-      accuracy = Math.max(10, Math.min(99, Math.round(accuracy)));
-      const loss = (100 - accuracy) / 100;
+      try {
+        const safeLr = !isNaN(Number(learningRate)) ? Number(learningRate) : 0.05;
+        const safeLayers = Number(hiddenLayers) >= 1 ? Number(hiddenLayers) : 4;
+        const safeNoise = Number(noiseInput) >= 0 ? Number(noiseInput) : 10;
 
-      if (learningRate > 0.4) {
-        return {
-          status: 'danger',
-          badge: 'OVERSHOOTING / LOSS DIVERGEN',
-          title: 'Learning Rate Terlalu Tinggi',
-          description: 'Langkah gradient descent meloncat melompati titik minimum lokal loss function, menyebabkan model AI tidak pernah konvergen!',
-          bagianA: 'Pelatihan model AI gagal karena laju pembelajar α terlampau tinggi. Pergeseran bobot melonjak ekstrem melompati nilai minimum fungsi kerugian (Loss Function).',
-          bagianB: 'Menurut rumus Gradient Descent w = w - α(∂L/∂w), nilai α yang terlalu besar memicu loncatan overshooting yang membuat gradien membesar (Exploding Gradient).',
-          bagianC: 'Turunkan nilai Learning Rate ke kisaran 0.01 - 0.08 untuk memungkinkan konvergensi yang mulus!',
-          metrics: { Accuracy: `${accuracy}%`, Loss: loss.toFixed(3), Convergence: 'Diverged' }
-        };
-      } else if (accuracy < 60) {
+        let accuracy = 99 - safeNoise * 0.5 - (safeLr > 0.3 ? (safeLr - 0.3) * 100 : 0);
+        accuracy = Math.max(10, Math.min(99, Math.round(accuracy)));
+        const loss = (100 - accuracy) / 100;
+
+        if (safeLr > 0.4) {
+          return {
+            status: 'danger',
+            badge: 'OVERSHOOTING / LOSS DIVERGEN',
+            title: 'Learning Rate Terlalu Tinggi',
+            description: `Learning Rate α=${safeLr} melompati minimum lokal loss function, akurasi drop ke ${accuracy}%!`,
+            bagianA: `Pelatihan AI meleset karena Learning Rate α=${safeLr} terlampau besar. Pergeseran bobot w = w - α(∂L/∂w) melompati titik minimum loss.`,
+            bagianB: `Rumus Gradient Descent dengan α=${safeLr} memicu loncatan overshooting (Exploding Gradient) pada ${safeLayers} hidden layers.`,
+            bagianC: `Turunkan Learning Rate α ke kisaran 0.01 - 0.08 (saat ini ${safeLr}) agar pembaruan bobot berjalan konvergen!`,
+            metrics: { Accuracy: `${accuracy}%`, Loss: loss.toFixed(3), Convergence: 'Diverged' }
+          };
+        } else if (accuracy < 60) {
+          return {
+            status: 'warning',
+            badge: 'UNDERFITTING / DATA NOISY',
+            title: 'Model Kurang Lapisan & Terlalu Banyak Noise',
+            description: `Akurasi AI hanya ${accuracy}% akibat noise ${safeNoise}% dengan ${safeLayers} hidden layers.`,
+            bagianA: `Model AI underfit (akurasi ${accuracy}%). Arsitektur ${safeLayers} hidden layers tidak memadai memisahkan data dengan noise ${safeNoise}%.`,
+            bagianB: `Underfitting terjadi ketika kapasitas parameter bobot W pada ${safeLayers} layer tidak cukup menangkap pola non-linear.`,
+            bagianC: `Tambah jumlah Hidden Layers di atas 3 (saat ini ${safeLayers}) dan kurangi Noise Data (saat ini ${safeNoise}%)!`,
+            metrics: { Accuracy: `${accuracy}%`, Loss: loss.toFixed(3), Convergence: 'Underfit' }
+          };
+        } else {
+          return {
+            status: 'optimal',
+            badge: 'KONVERGENSI MODEL OPTIMAL 99%',
+            title: 'Gradient Descent Berhasil Menemukan Minimum Global',
+            description: `Model AI mencapai akurasi ${accuracy}% (Loss ${loss.toFixed(3)}) pada α=${safeLr} dengan ${safeLayers} layers!`,
+            bagianA: `Jaringan saraf tiruan berhasil dilatih sempurna! Akurasi ${accuracy}% dicapai secara efisien pada ${safeLayers} hidden layers.`,
+            bagianB: `Fungsi aktivasi non-linear dan Learning Rate α=${safeLr} mengarahkan turunan loss ∂L/∂w mendekati titik minimum 0.`,
+            bagianC: `Performa jaringan saraf tiruan berada di kondisi puncak! Uji penambahan noise data untuk mensimulasikan gangguan real-world.`,
+            metrics: { Accuracy: `${accuracy}%`, Loss: loss.toFixed(3), Convergence: 'Converged (99%)' }
+          };
+        }
+      } catch (err) {
+        console.error("Error calculating 6C consequence:", err);
         return {
           status: 'warning',
-          badge: 'UNDERFITTING / DATA NOISY',
-          title: 'Model Kurang Lapisan & Terlalu Banyak Noise',
-          description: 'Garis keputusan (decision boundary) AI terlalu sederhana untuk memisahkan pola data yang kompleks.',
-          bagianA: 'Akurasi model AI rendah karena arsitektur jaringan terlampau sederhana untuk menangkap kompleksitas pola data masukan yang bising.',
-          bagianB: 'Fenomena Underfitting terjadi ketika jumlah parameter bobot W tidak memadai untuk membentuk pemetaan non-linear (Capacity Deficit).',
-          bagianC: 'Tambah jumlah Hidden Layers dan kurangi Noise Data untuk meningkatkan akurasi hingga 99%!',
-          metrics: { Accuracy: `${accuracy}%`, Loss: loss.toFixed(3), Convergence: 'Underfit' }
-        };
-      } else {
-        return {
-          status: 'optimal',
-          badge: 'KONVERGENSI MODEL OPTIMAL 99%',
-          title: 'Gradient Descent Berhasil Menemukan Minimum Global',
-          description: 'Fungsi aktivasi Sigmoid/ReLU memetakan non-linearitas data dengan presisi tinggi!',
-          bagianA: 'Model kecerdasan buatan berhasil dilatih dengan sempurna! Pembelajaran Gradient Descent mencapai tingkat konvergensi dan akurasi tinggi.',
-          bagianB: 'Penggabungan fungsi aktivasi non-linear dan nilai Learning Rate yang ideal membawa turunan loss ∂L/∂w tepat mendekati titik minimum 0.',
-          bagianC: 'Model AI berada pada performa terbaik! Anda dapat mensimulasikan penambahan noise data untuk menguji ketahanan model.',
-          metrics: { Accuracy: `${accuracy}%`, Loss: loss.toFixed(3), Convergence: 'Converged (99%)' }
+          badge: 'EVALUASI DIPERBARUI',
+          title: 'Kalkulasi Neural Network Diproses',
+          description: 'Sistem memperbarui akurasi Gradient Descent.',
+          bagianA: 'Parameter jaring saraf sedang dihitung.',
+          bagianB: 'Persamaan w = w - α(∂L/∂w) disesuaikan dinamis.',
+          bagianC: 'Geser slider Learning Rate dan Hidden Layers.',
+          metrics: { Status: 'Active' }
         };
       }
     },

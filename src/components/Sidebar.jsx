@@ -81,9 +81,11 @@ export default function Sidebar({ currentView, onViewChange, currentUser }) {
       </div>
 
       {/* Footer Info */}
-      <div className="pt-3 border-t border-slate-100 px-2 text-center text-xs text-slate-400">
-        <p className="font-bold text-slate-700">SmartTKA</p>
-        <p className="text-[11px] text-slate-400">Platform Asesmen Kemampuan Akademik</p>
+      <div className="pt-3 border-t border-slate-100 px-2 text-center text-xs text-slate-400 font-sans">
+        <p className="font-extrabold text-slate-900 text-sm tracking-tight font-['Plus_Jakarta_Sans']">
+          Lest<span className="text-blue-600">Try</span>
+        </p>
+        <p className="text-[10px] text-slate-400 font-medium mt-0.5">Interactive Classroom Projection & Concept Lab</p>
       </div>
 
     </aside>
