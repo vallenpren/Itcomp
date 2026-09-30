@@ -423,7 +423,7 @@ export const ITEM_ANALYSIS_MOCK = [
 
 export const SMART_DIAGNOSTICS_DB = {
   high: {
-    title: "Kemampuan Pemahaman Sangat Kuat! 🚀",
+    title: "Kemampuan Pemahaman Sangat Kuat",
     badge: "Mastery Level A",
     summary: "Selamat! Anda menunjukkan penguasaan konsep dasar dan analisis lanjutan yang sangat tajam di atas rata-rata KKM.",
     recommendations: [
@@ -433,7 +433,7 @@ export const SMART_DIAGNOSTICS_DB = {
     ]
   },
   medium: {
-    title: "Pemahaman Cukup Baik, Butuh Presisi Lebih Tinggi 💡",
+    title: "Pemahaman Cukup Baik, Butuh Presisi Lebih Tinggi",
     badge: "Mastery Level B",
     summary: "Anda memiliki fondasi matematika yang solid, namun masih ada celah pada ketelitian hitungan algebra dan alur logika berantai.",
     recommendations: [
@@ -443,7 +443,7 @@ export const SMART_DIAGNOSTICS_DB = {
     ]
   },
   low: {
-    title: "Perlu Penguatan Konsep Dasar 📚",
+    title: "Perlu Penguatan Konsep Dasar",
     badge: "Perlu Pendampingan",
     summary: "Skor berada di bawah target KKM (75). Terdapat kendala pemahaman pada penyelesaian soal cerita dan transformasi rumus.",
     recommendations: [

@@ -126,35 +126,35 @@ export const EXPERIMENTS_DATA = {
         if (netAccel <= 0 || safeFuelBurn < 90) {
           return {
             status: 'danger',
-            badge: 'GAGAL JATUH KE BUMI',
-            title: 'Roket Kehilangan Gaya Dorong (Gravitasi Dominate)',
-            description: `Turunan laju bakar f'(t) (${safeFuelBurn} kg/s) terlalu rendah dibanding massa payload (${safeMass} kg)! Roket gagal mencapai kecepatan lepas.`,
-            bagianA: `Gaya dorong mesin roket (${Math.round(thrust)} N) kalah kuat dibanding tarikan gaya gravitasi bumi (${Math.round(weight)} N). Karena laju pembakaran (${safeFuelBurn} kg/s) terlalu lambat, massa roket tetap berat (${safeMass} kg) sehingga percepatan bernilai minus atau nol (${netAccel.toFixed(1)} m/s²).`,
-            bagianB: `Sesuai Kalkulus Diferensial f'(t) = dv/dt, jika F_dorong < m·g, percepatan f'(t) ≤ 0 m/s². Kecepatan instan roket (${targetSpeed} km/h) tidak pernah melewati batas Kecepatan Lolos Orbit (11.2 km/s).`,
-            bagianC: `Geser slider Laju Bakar f'(t) ke atas 160 kg/s (saat ini ${safeFuelBurn} kg/s) atau kurangi Massa Payload di bawah 4.000 kg (saat ini ${safeMass} kg) agar percepatan roket bertanda positif (+)!`,
-            metrics: { Accel: `${netAccel.toFixed(1)} m/s²`, Speed: `${targetSpeed} km/h`, Status: 'Gagal' }
+            badge: 'PERLU TAMBAHAN DORONGAN',
+            title: 'Mesin Roket Belum Cukup Kuat',
+            description: 'Roket belum terangkat karena dorongan mesin masih kalah kuat dari beratnya. Yuk, coba naikkan bahan bakar atau kurangi muatannya!',
+            bagianA: `Dorongan mesin roket (${Math.round(thrust)} N) belum cukup melawan berat roket (${Math.round(weight)} N). Mari kita bantu roket ini meluncur!`,
+            bagianB: `Laju bahan bakar f'(t) saat ini ${safeFuelBurn} kg/s belum menghasilkan percepatan positif.`,
+            bagianC: `Yuk, coba geser slider Laju Bakar ke atas atau kurangi Massa Beban agar roket bisa meluncur indah ke angkasa!`,
+            metrics: { Accel: `${netAccel.toFixed(1)} m/s²`, Speed: `${targetSpeed} km/h`, Status: 'Belum Terangkat' }
           };
         } else if (safeAngle < 50) {
           return {
             status: 'warning',
-            badge: 'TERBAKAR DI ATMOSFER',
-            title: 'Sudut Luncur Terlalu Landai (Gesekan Udara Ekstrem)',
-            description: `Gaya dorong cukup (${netAccel.toFixed(1)} m/s²), tetapi sudut elevasi (${safeAngle}°) terlalu rendah memicu friksi atmosfer tebal.`,
-            bagianA: `Sudut elevasi saat ini (${safeAngle}°) terlalu landai. Sebagian besar energi kinetik terbuang ke gesekan atmosfer padat di jarak horizontal, mengakibatkan kenaikan suhu pelindung panas roket.`,
-            bagianB: `Komponen gaya dorong vertikal F·sin(${safeAngle}°) terlalu kecil dibanding komponen horizontal F·cos(${safeAngle}°), menyebabkan trajektori lintasan tetap berada di ketinggian atmosfer padat.`,
-            bagianC: `Geser Sudut Luncur (θ) naik mendekati 75° (saat ini ${safeAngle}°) agar roket dengan cepat menembus atmosfer tipis menuju orbit hampa udara!`,
-            metrics: { Accel: `${netAccel.toFixed(1)} m/s²`, Speed: `${targetSpeed} km/h`, Status: 'Overheat' }
+            badge: 'SUDUT TERLALU LANDAI',
+            title: 'Roket Mengalami Gesekan Udara',
+            description: 'Dorongan mesin sudah mantap, tapi sudut luncur terlalu landai sehingga gesekan udara jadi tinggi. Coba naikkan sudutnya!',
+            bagianA: `Sudut luncur saat ini ${safeAngle}° terlalu landai. Gesekan udara tebal membuat roket kepanasan di jalan.`,
+            bagianB: `Komponen dorongan ke atas masih kecil. Kita butuh sudut yang lebih tegak agar cepat tembus atmosfer.`,
+            bagianC: `Yuk, geser Sudut Luncur naik mendekati 75° supaya roket langsung menembus lapisan udara tebal dengan aman!`,
+            metrics: { Accel: `${netAccel.toFixed(1)} m/s²`, Speed: `${targetSpeed} km/h`, Status: 'Terlalu Landai' }
           };
         } else {
           return {
             status: 'optimal',
-            badge: 'BERHASIL MENCAPAI ORBIT',
-            title: 'Berhasil Masuk Orbit Bumi Rendah (LEO)',
-            description: `Kombinasi parameter ideal! Sudut elevasi ${safeAngle}° dan laju pembakaran ${safeFuelBurn} kg/s memberikan keseimbangan optimal antara waktu melayang (t_peak) dan jangkauan orbit.`,
-            bagianA: `Laju pembakaran bahan bakar (${safeFuelBurn} kg/s) menghasilkan dorongan (${Math.round(thrust)} N) yang melesatkan roket melewati gaya tarik bumi. Sudut elevasi ${safeAngle}° membawa roket ke ketinggian orbit LEO dengan aman.`,
-            bagianB: `Percepatan f'(t) konstan positif (${netAccel.toFixed(1)} m/s²) dan sudut luncur optimal (${safeAngle}°) memenuhi persamaan gaya sentripetal v²/r = g, menjaga roket melingkari bumi secara stabil.`,
-            bagianC: `Eksperimen berada dalam kondisi paling optimal! Anda dapat menguji perubahan massa payload untuk mengamati margin keamanan laju percepatan f'(t).`,
-            metrics: { Accel: `${netAccel.toFixed(1)} m/s²`, Speed: `${targetSpeed} km/h`, Status: 'Orbit Stable' }
+            badge: 'BERHASIL TERBANG INDAH',
+            title: 'Hebat! Roket Berhasil Mencapai Orbit',
+            description: 'Kombinasi parametermu pas banget! Roket melesat mulus tembus ke orbit dengan percepatan dan sudut yang tepat.',
+            bagianA: `Dorongan mesin (${Math.round(thrust)} N) dan sudut luncur ${safeAngle}° bekerja sangat padu membawa roket meluncur stabil.`,
+            bagianB: `Percepatan roket bernilai positif (${netAccel.toFixed(1)} m/s²) sehingga kecepatan terus bertambah melintasi ruang angkasa.`,
+            bagianC: `Luar biasa! Kamu bisa coba ubah muatan atau bahan bakar untuk melihat bagaimana pengaruhnya terhadap daya terbang roket!`,
+            metrics: { Accel: `${netAccel.toFixed(1)} m/s²`, Speed: `${targetSpeed} km/h`, Status: 'Meluncur Sempurna' }
           };
         }
       } catch (err) {

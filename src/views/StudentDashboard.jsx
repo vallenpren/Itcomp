@@ -5,20 +5,20 @@ import {
   CheckCircle2, 
   AlertCircle, 
   BarChart3, 
-  Calendar, 
   BookOpen, 
   Award, 
-  ChevronRight, 
-  Filter, 
-  Search,
-  Sparkles,
-  ArrowUpRight,
-  TrendingUp,
-  GraduationCap,
-  Tv,
-  ArrowRight
+  Search, 
+  TrendingUp, 
+  Tv, 
+  Users, 
+  Download, 
+  FileText, 
+  UserCheck, 
+  Filter,
+  Check
 } from 'lucide-react';
 import { MOCK_ASSESSMENTS } from '../data/mockData';
+import { INITIAL_GROUP_MODULES } from '../components/TeacherClassroomGroups';
 
 export default function StudentDashboard({ 
   currentUser, 
@@ -29,223 +29,288 @@ export default function StudentDashboard({
 }) {
   const [activeTab, setActiveTab] = useState('all'); // 'all', 'active', 'completed'
   const [searchQuery, setSearchQuery] = useState('');
+  const [toastMessage, setToastMessage] = useState('');
+  
+  // Student's assigned group state
+  const [assignedGroupKey, setAssignedGroupKey] = useState('GROUP_A'); // 'GROUP_A' | 'GROUP_B' | 'GROUP_C'
+  
+  // Dynamic Group Modules State from Storage
+  const [groupModules, setGroupModules] = useState(() => {
+    try {
+      const saved = localStorage.getItem('lesttry_group_modules');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return INITIAL_GROUP_MODULES;
+  });
 
   const [sessionTargetClass, setSessionTargetClass] = useState({ id: 'MIPA-1', name: 'XII MIPA 1' });
 
-  // 1. PERSISTENT & REACTIVE LIVE PRESENTATION STATE FOR STUDENT
+  // Listen for real-time updates from teacher module upload
+  useEffect(() => {
+    const handleStorageChange = () => {
+      try {
+        const saved = localStorage.getItem('lesttry_group_modules');
+        if (saved) setGroupModules(JSON.parse(saved));
+      } catch (e) {}
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  const triggerToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(''), 3500);
+  };
+
+  // Live session check
   const [isLiveSession, setIsLiveSession] = useState(() => {
     if (liveSession?.isActive === true || liveSession?.isLive === true) return true;
     try {
       const savedSession = localStorage.getItem('smarttka_live_session');
       if (savedSession) {
         const parsed = JSON.parse(savedSession);
-        if (parsed.targetClassId) {
-          setSessionTargetClass({ id: parsed.targetClassId, name: parsed.targetClassName || 'XII MIPA 1' });
-        }
+        if (parsed.targetClassId) setSessionTargetClass({ id: parsed.targetClassId, name: parsed.targetClassName || 'XII MIPA 1' });
         if (parsed.isLive === true) return true;
-      }
-      const savedState = localStorage.getItem('smarttka_live_session_state');
-      if (savedState) {
-        const parsedState = JSON.parse(savedState);
-        if (parsedState.targetClassId) {
-          setSessionTargetClass({ id: parsedState.targetClassId, name: parsedState.targetClassName || 'XII MIPA 1' });
-        }
-        if (parsedState.isActive === true) return true;
       }
     } catch (e) {}
     return false;
   });
 
-  // 2. REAKTIF DUAL LISTENER IN EFFECT
   useEffect(() => {
-    // A. Initial Mount Check
-    const checkActiveLive = () => {
-      try {
-        const cached = localStorage.getItem('lesttry_live_presentation_state') || localStorage.getItem('smarttka_active_live_payload');
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          if (parsed.targetClassId) {
-            setSessionTargetClass({ id: parsed.targetClassId, name: parsed.targetClassName || 'XII MIPA 1' });
-          }
-          if (parsed.isLive !== false) {
-            setIsLiveSession(true);
-            return;
-          }
-        }
-        const savedSession = localStorage.getItem('smarttka_live_session_state');
-        if (savedSession) {
-          const parsed = JSON.parse(savedSession);
-          if (parsed.targetClassId) {
-            setSessionTargetClass({ id: parsed.targetClassId, name: parsed.targetClassName || 'XII MIPA 1' });
-          }
-          if (parsed.isActive === true || parsed.isLive === true) {
-            setIsLiveSession(true);
-            return;
-          }
-        }
-      } catch (e) {}
-    };
-
-    checkActiveLive();
-
-    // B. BroadcastChannel Listeners
-    let lesttryChannel, streamChannel, classroomChannel;
+    let lesttryChannel, streamChannel;
     try {
       lesttryChannel = new BroadcastChannel('lesttry_presentation_sync');
       lesttryChannel.onmessage = (event) => {
-        const data = event.data;
-        if (!data) return;
-        if (data.targetClassId) {
-          setSessionTargetClass({ id: data.targetClassId, name: data.targetClassName || 'XII MIPA 1' });
-        }
-        if (data.type === 'LESTTRY_SLIDE_UPDATE' || data.isLive === true) {
-          setIsLiveSession(true);
-        }
-        if (data.type === 'LESTTRY_STOP_PRESENTATION' || data.isLive === false) {
-          setIsLiveSession(false);
-        }
+        if (event.data?.isLive === true) setIsLiveSession(true);
+        if (event.data?.isLive === false) setIsLiveSession(false);
       };
 
       streamChannel = new BroadcastChannel('smarttka_live_stream');
       streamChannel.onmessage = (event) => {
-        const data = event.data;
-        if (!data) return;
-        const targetId = data.targetClassId;
-        const targetName = data.targetClassName;
-        if (targetId) {
-          setSessionTargetClass({ id: targetId, name: targetName || 'XII MIPA 1' });
-        }
-
-        if (data.type === 'LESTTRY_SLIDE_UPDATE' || data.type === 'SYNC_PRESENTATION_STATE' || data.type === 'SLIDE_CHANGE' || data.isLive === true) {
-          setIsLiveSession(true);
-        }
-        if (data.type === 'LESTTRY_STOP_PRESENTATION' || data.type === 'END_PRESENTATION' || data.isLive === false) {
-          setIsLiveSession(false);
-        }
-      };
-
-      classroomChannel = new BroadcastChannel('smarttka_live_classroom');
-      classroomChannel.onmessage = (event) => {
-        if (event.data?.type === 'TEACHER_START_PRESENTATION' || event.data?.isLive === true) {
-          setIsLiveSession(true);
-        }
-        if (event.data?.type === 'TEACHER_STOP_PRESENTATION' || event.data?.isLive === false) {
-          setIsLiveSession(false);
-        }
+        if (event.data?.isLive === true) setIsLiveSession(true);
+        if (event.data?.isLive === false) setIsLiveSession(false);
       };
     } catch (e) {}
-
-    // C. Window Storage Listener
-    const handleStorageChange = (e) => {
-      if (e.key === 'lesttry_live_presentation_state' || e.key === 'smarttka_active_live_payload' || e.key === 'smarttka_live_session_state') {
-        checkActiveLive();
-      }
-    };
-    window.addEventListener('storage', handleStorageChange);
 
     return () => {
       if (lesttryChannel) lesttryChannel.close();
       if (streamChannel) streamChannel.close();
-      if (classroomChannel) classroomChannel.close();
-      window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
 
-  // Sync prop changes if available
-  useEffect(() => {
-    if (liveSession?.isActive !== undefined || liveSession?.isLive !== undefined) {
-      setIsLiveSession(liveSession.isActive === true || liveSession.isLive === true);
-    }
-  }, [liveSession?.isActive, liveSession?.isLive]);
+  const safeAssessments = MOCK_ASSESSMENTS || [];
+  const activeAssessments = safeAssessments.filter(a => a && (a.status === 'active' || a.status === 'Berlangsung'));
+  const completedAssessments = safeAssessments.filter(a => a && (a.status === 'completed' || a.status === 'Selesai'));
 
-  const activeAssessments = MOCK_ASSESSMENTS.filter(a => a.status === 'active');
-  const completedAssessments = MOCK_ASSESSMENTS.filter(a => a.status === 'completed');
-
-  const filteredAssessments = MOCK_ASSESSMENTS.filter(a => {
-    const matchesTab = activeTab === 'all' || a.status === activeTab;
-    const matchesSearch = a.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          a.subject.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredAssessments = safeAssessments.filter(a => {
+    if (!a) return false;
+    const isAct = a.status === 'active' || a.status === 'Berlangsung';
+    const isComp = a.status === 'completed' || a.status === 'Selesai';
+    const matchesTab = activeTab === 'all' || (activeTab === 'active' && isAct) || (activeTab === 'completed' && isComp);
+    const matchesSearch = (a.title || '').toLowerCase().includes((searchQuery || '').toLowerCase()) || 
+                          (a.subject || '').toLowerCase().includes((searchQuery || '').toLowerCase());
     return matchesTab && matchesSearch;
   });
 
-  const liveTargetClassName = liveSession?.targetClassName || sessionTargetClass.name || 'XII MIPA 1';
+  const activeModuleForStudent = groupModules[assignedGroupKey] || INITIAL_GROUP_MODULES.GROUP_A;
+
+  const handleDownloadModule = () => {
+    triggerToast(`File "${activeModuleForStudent.fileName}" berhasil diunduh ke perangkat Anda.`);
+  };
+
+  const getApproachLabel = (key) => {
+    if (key === 'GROUP_A') return 'Visual';
+    if (key === 'GROUP_B') return 'Teori & Analitis';
+    return 'Praktik Langsung';
+  };
 
   return (
-    <div className="space-y-6 pb-20 md:pb-6 font-sans">
+    <div className="space-y-6 pb-20 md:pb-6 font-sans text-slate-800">
       
-      {/* 3. TAMPILAN BANNER / TOMBOL DI LAYAR SISWA */}
+      {/* TOAST NOTIFICATION */}
+      {toastMessage && (
+        <div className="fixed top-20 right-6 z-50 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-slate-700 flex items-center gap-3 animate-in fade-in">
+          <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+          <span className="text-xs font-bold leading-snug">{toastMessage}</span>
+        </div>
+      )}
+
+      {/* SIARAN LIVE GURU BANNER */}
       {isLiveSession && (
-        <div className="mb-6 p-4.5 bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-100 border-2 border-blue-500/40 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md animate-fade-in">
+        <div className="mb-6 p-5 bg-blue-50 border-2 border-blue-400/50 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
           <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-blue-500/30">
-              <Tv className="w-6 h-6 animate-pulse" />
+            <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0">
+              <Tv className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2 mb-0.5">
-                <span className="px-2.5 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-black uppercase tracking-wider flex items-center gap-1 shadow-xs">
-                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
-                  SIARAN GURU AKTIF
+                <span className="px-2.5 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-wider">
+                  Siaran Guru Aktif
                 </span>
-                <span className="text-xs font-bold text-blue-900 bg-white/80 px-2 py-0.5 rounded-md border border-blue-200">
-                  Ruang: {liveTargetClassName}
+                <span className="text-xs font-bold text-blue-900 bg-white px-2 py-0.5 rounded border border-blue-200">
+                  {sessionTargetClass.name}
                 </span>
               </div>
-              <h4 className="text-base font-extrabold text-slate-900">
+              <h4 className="text-sm font-extrabold text-slate-900">
                 Pak Budi Hartono Sedang Mempresentasikan Materi Live
               </h4>
-              <p className="text-xs text-slate-600 font-medium">Layar proyektor simulasi aktif secara real-time. Ketuk untuk menyimak bersama.</p>
             </div>
           </div>
           <button 
             onClick={onJoinLiveSession}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 text-xs font-black text-white bg-blue-600 hover:bg-blue-700 active:scale-[0.98] rounded-xl shadow-md shadow-blue-600/25 transition-all cursor-pointer shrink-0"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs cursor-pointer shrink-0"
           >
             <Tv className="w-4 h-4" />
-            <span>Simak Presentasi Proyektor ↗</span>
+            <span>Simak Presentasi Proyektor</span>
           </button>
         </div>
       )}
       
-      {/* Welcome Hero Banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-600 p-6 sm:p-8 text-white shadow-lg shadow-blue-600/15">
-        <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
-        
-        <div className="relative z-10 max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-xs font-semibold mb-3 border border-white/20">
-            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-            <span>Selamat Datang Kembali, {currentUser.name}!</span>
+      {/* BANNER SISWA HUMAN-CENTERED */}
+      <div className="relative overflow-hidden rounded-3xl bg-slate-900 p-6 sm:p-8 text-white shadow-xl space-y-5 border border-slate-800">
+        <div className="relative z-10 space-y-4">
+          
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <span className="px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30 text-xs font-bold flex items-center gap-1.5">
+              <UserCheck className="w-3.5 h-3.5" />
+              Siswa: {currentUser?.name || 'Ahmad Dani'} ({currentUser?.class || 'XII MIPA 1'})
+            </span>
+
+            <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[11px] font-bold">
+              Status Pengelompokan Aktif
+            </span>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-            Asesmen Saya & Pemetaan Kemampuan
-          </h1>
-          <p className="mt-2 text-sm text-blue-100 leading-relaxed">
-            Siapkan diri Anda untuk ujian akademik dengan simulasi anti-distraksi dan analisis diagnostik presisi 5 pilar kompetensi.
-          </p>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+              Ayo pelajari konsep materi hari ini lewat simulasi seru dan lihat perkembangan belajarmu!
+            </h1>
+            <p className="mt-1.5 text-xs text-blue-200 font-semibold">
+              Kelompok Belajar: {activeModuleForStudent.groupName} (Fokus Cara Belajar: {getApproachLabel(assignedGroupKey)})
+            </p>
+          </div>
 
-          <div className="mt-5 flex flex-wrap gap-3">
+          {/* CATATAN SINGKAT KELOMPOK */}
+          <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 space-y-1.5 text-xs">
+            <div className="flex items-center gap-2 text-blue-300 font-bold">
+              <Users className="w-4 h-4 text-blue-400" />
+              <span>Informasi Kelompok Belajar:</span>
+            </div>
+            <p className="text-[11px] text-slate-200 leading-relaxed font-normal">
+              Kelompok ini adalah wadah diskusi cara belajar. Materi pokok sama dengan teman sekelas lainnya, namun modul ajar Anda disajikan lewat panduan visual. Asesmen dan kuis tetap dikerjakan mandiri.
+            </p>
+          </div>
+
+          <div className="pt-1 flex flex-wrap gap-3">
             <button
-              onClick={() => onStartTest(MOCK_ASSESSMENTS[0])}
-              className="px-4 py-2.5 rounded-xl bg-white text-blue-700 hover:bg-blue-50 font-bold text-xs sm:text-sm transition-all shadow-md flex items-center gap-2 cursor-pointer"
+              onClick={() => onStartTest(safeAssessments[0])}
+              className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs transition-all shadow-xs flex items-center gap-2 cursor-pointer active:scale-95"
             >
-              <Play className="w-4 h-4 fill-blue-700" />
-              <span>Mulai Simulasi Utama (TKA Matematika)</span>
+              <Play className="w-3.5 h-3.5 fill-white" />
+              <span>Mulai Latihan Mandiri</span>
             </button>
 
             <button
-              onClick={() => onViewDiagnostic(completedAssessments[0])}
-              className="px-4 py-2.5 rounded-xl bg-blue-600/60 hover:bg-blue-600 text-white font-semibold text-xs sm:text-sm transition-all border border-white/20 flex items-center gap-2 cursor-pointer"
+              onClick={() => onViewDiagnostic(completedAssessments[0] || safeAssessments[0])}
+              className="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium text-xs transition-all border border-white/30 flex items-center gap-2 cursor-pointer active:scale-95"
             >
-              <BarChart3 className="w-4 h-4" />
-              <span>Lihat Diagnostik Terakhir</span>
+              <BarChart3 className="w-3.5 h-3.5 text-white/90" />
+              <span>Lihat Hasil Pemahaman</span>
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      {/* KARTU MODUL BELAJAR SISWA (DISTRIBUSI TERFILTER & UNDUH MODUL) */}
+      <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-slate-100">
+          <div>
+            <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+              <BookOpen className="w-5 h-5 text-blue-600" />
+              <span>Modul Belajar Sesuai Gaya Belajar Siswa</span>
+            </h3>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">
+              Menampilkan modul ajar spesifik yang diunggah guru untuk kelompok belajar Anda.
+            </p>
+          </div>
+
+          {/* Group Switcher Preview */}
+          <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl text-xs font-bold shrink-0">
+            <button
+              onClick={() => setAssignedGroupKey('GROUP_A')}
+              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                assignedGroupKey === 'GROUP_A' ? 'bg-white text-blue-700 shadow-xs font-black' : 'text-slate-600'
+              }`}
+            >
+              Kelompok A (Visual)
+            </button>
+            <button
+              onClick={() => setAssignedGroupKey('GROUP_B')}
+              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                assignedGroupKey === 'GROUP_B' ? 'bg-white text-purple-700 shadow-xs font-black' : 'text-slate-600'
+              }`}
+            >
+              Kelompok B (Teori)
+            </button>
+            <button
+              onClick={() => setAssignedGroupKey('GROUP_C')}
+              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                assignedGroupKey === 'GROUP_C' ? 'bg-white text-teal-700 shadow-xs font-black' : 'text-slate-600'
+              }`}
+            >
+              Kelompok C (Praktik)
+            </button>
+          </div>
+        </div>
+
+        {/* MAIN FILTERED MODULE CARD */}
+        <div className="p-5 sm:p-6 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          {/* Left Side */}
+          <div className="space-y-2 max-w-2xl">
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-0.5 rounded-md bg-blue-100 text-blue-800 text-[10px] font-black uppercase">
+                {activeModuleForStudent.groupName} • Fokus Cara Belajar: {getApproachLabel(assignedGroupKey)}
+              </span>
+              <span className="text-[11px] text-slate-400 font-semibold">
+                Terbit: {activeModuleForStudent.uploadDate}
+              </span>
+            </div>
+
+            <h4 className="text-lg font-extrabold text-slate-900">
+              {activeModuleForStudent.activeModuleTitle}
+            </h4>
+
+            <p className="text-xs text-slate-600 leading-relaxed font-medium">
+              {activeModuleForStudent.description}
+            </p>
+
+            <div className="pt-1 flex items-center gap-3 text-xs text-slate-500 font-bold">
+              <span className="flex items-center gap-1">
+                <FileText className="w-4 h-4 text-blue-600" />
+                {activeModuleForStudent.fileName}
+              </span>
+              <span>•</span>
+              <span>Ukuran: {activeModuleForStudent.fileSize || '2.4 MB'}</span>
+            </div>
+          </div>
+
+          {/* Right Side Action Button */}
+          <div className="shrink-0 w-full md:w-auto">
+            <button
+              onClick={handleDownloadModule}
+              className="w-full md:w-auto px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+            >
+              <Download className="w-4 h-4" />
+              <span>Unduh Modul (PDF)</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Overview Stat Cards */}
+      {/* OVERVIEW STAT CARDS */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        
         <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Asesmen Aktif</span>
@@ -253,8 +318,8 @@ export default function StudentDashboard({
               <BookOpen className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-black text-slate-900 tabular-nums">{activeAssessments.length}</p>
-          <p className="text-[11px] text-teal-600 font-semibold mt-1">Siap dikerjakan</p>
+          <p className="text-2xl font-black text-slate-900 tabular-nums">{(activeAssessments || []).length}</p>
+          <p className="text-[11px] text-teal-600 font-semibold mt-1">Dikerjakan mandiri</p>
         </div>
 
         <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs">
@@ -264,8 +329,8 @@ export default function StudentDashboard({
               <CheckCircle2 className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-black text-slate-900 tabular-nums">{completedAssessments.length}</p>
-          <p className="text-[11px] text-slate-500 font-medium mt-1">Total evaluasi</p>
+          <p className="text-2xl font-black text-slate-900 tabular-nums">{(completedAssessments || []).length}</p>
+          <p className="text-[11px] text-slate-500 font-medium mt-1">Evaluasi mandiri</p>
         </div>
 
         <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs">
@@ -289,20 +354,17 @@ export default function StudentDashboard({
           <p className="text-2xl font-extrabold text-slate-900">3 <span className="text-xs text-slate-400 font-medium">/ 36</span></p>
           <p className="text-[11px] text-amber-600 font-bold mt-1">Top 10% Kelas</p>
         </div>
-
       </div>
 
-      {/* Main Section Header with Tabs & Search */}
-      <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-xs space-y-6">
-        
+      {/* LIST ASESMEN AKADEMIK INDIVIDU */}
+      <div className="bg-white p-4 sm:p-6 rounded-3xl border border-slate-200 shadow-xs space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-lg font-bold text-slate-900">Daftar Asesmen Akademik</h2>
-            <p className="text-xs text-slate-500">Pilih ujian untuk mulai dikerjakan atau lihat riwayat diagnostik.</p>
+            <h2 className="text-lg font-bold text-slate-900">Daftar Latihan &amp; Asesmen Mandiri</h2>
+            <p className="text-xs text-slate-500 font-medium">Soal diujikan seragam, dikerjakan secara individu/mandiri.</p>
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Search Input */}
             <div className="relative flex-1 sm:w-64">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
@@ -324,7 +386,7 @@ export default function StudentDashboard({
               activeTab === 'all' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'
             }`}
           >
-            Semua Asesmen ({MOCK_ASSESSMENTS.length})
+            Semua Asesmen ({(safeAssessments || []).length})
             {activeTab === 'all' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t-full" />}
           </button>
 
@@ -334,7 +396,7 @@ export default function StudentDashboard({
               activeTab === 'active' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'
             }`}
           >
-            Ujian Aktif ({activeAssessments.length})
+            Latihan Aktif ({(activeAssessments || []).length})
             {activeTab === 'active' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t-full" />}
           </button>
 
@@ -344,23 +406,23 @@ export default function StudentDashboard({
               activeTab === 'completed' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'
             }`}
           >
-            Riwayat Nilai ({completedAssessments.length})
+            Hasil Pemahaman ({(completedAssessments || []).length})
             {activeTab === 'completed' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t-full" />}
           </button>
         </div>
 
-        {/* Assessment Grid List */}
+        {/* Assessment Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredAssessments.map((assessment) => {
-            const isActive = assessment.status === 'active';
+          {(filteredAssessments || []).map((assessment) => {
+            if (!assessment) return null;
+            const isActive = assessment.status === 'active' || assessment.status === 'Berlangsung';
 
             return (
               <div
                 key={assessment.id}
-                className="group relative flex flex-col justify-between p-5 rounded-2xl bg-white border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all duration-200"
+                className="group relative flex flex-col justify-between p-5 rounded-2xl bg-white border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all duration-200 space-y-4"
               >
                 <div>
-                  {/* Top Badge & Subject */}
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">
                       {assessment.subject}
@@ -374,29 +436,25 @@ export default function StudentDashboard({
                     </span>
                   </div>
 
-                  {/* Title */}
                   <h3 className="font-extrabold text-slate-900 text-base group-hover:text-blue-600 transition-colors leading-snug mb-2">
                     {assessment.title}
                   </h3>
 
-                  <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed mb-4">
+                  <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed mb-3">
                     {assessment.description}
                   </p>
 
-                  {/* Meta Specs */}
-                  <div className="grid grid-cols-2 gap-2 p-3 rounded-xl bg-slate-50 border border-slate-100 text-xs text-slate-600 mb-4">
-                    <div className="flex items-center gap-1.5">
-                      <BookOpen className="w-3.5 h-3.5 text-slate-400" />
-                      <span><strong>{assessment.totalQuestions}</strong> Soal</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5 text-slate-400" />
-                      <span><strong>{assessment.durationMinutes}</strong> Menit</span>
-                    </div>
+                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-[10px] text-slate-600 mb-3 space-y-0.5">
+                    <span className="font-bold text-slate-700 flex items-center gap-1">
+                      <UserCheck className="w-3 h-3 text-blue-600" />
+                      <span>Pelaksanaan Asesmen Mandiri</span>
+                    </span>
+                    <p className="text-[10px] text-slate-500 leading-normal">
+                      Soal diujikan seragam, dikerjakan secara individu, dan skor dihitung per siswa.
+                    </p>
                   </div>
                 </div>
 
-                {/* Card Action Footer */}
                 {isActive ? (
                   <div>
                     <div className="flex items-center justify-between text-[11px] text-amber-600 font-semibold mb-3">
@@ -408,33 +466,32 @@ export default function StudentDashboard({
 
                     <button
                       onClick={() => onStartTest(assessment)}
-                      className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition-all shadow-md shadow-blue-600/20 flex items-center justify-center gap-2 group-hover:scale-[1.01] cursor-pointer"
+                      className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
                     >
                       <Play className="w-3.5 h-3.5 fill-white" />
-                      <span>Mulai Ujian</span>
+                      <span>Mulai Latihan Mandiri</span>
                     </button>
                   </div>
                 ) : (
                   <div>
                     <div className="flex items-center justify-between p-3 rounded-xl bg-teal-50/60 border border-teal-100 mb-3">
                       <div>
-                        <span className="text-[10px] uppercase font-bold text-slate-500">Skor Akhir</span>
-                        <div className="text-lg font-extrabold text-teal-700">{assessment.score} / 100</div>
+                        <span className="text-[10px] uppercase font-bold text-slate-500">Skor Individu</span>
+                        <div className="text-lg font-extrabold text-teal-700">{assessment.score || 88} / 100</div>
                       </div>
                       <span className={`text-xs font-bold px-2 py-1 rounded-md ${
-                        assessment.passed ? 'bg-teal-600 text-white' : 'bg-red-600 text-white'
+                        assessment.passed !== false ? 'bg-teal-600 text-white' : 'bg-red-600 text-white'
                       }`}>
-                        {assessment.passed ? 'LULUS KKM' : 'REMEDIAL'}
+                        {assessment.passed !== false ? 'LULUS KKM' : 'REMEDIAL'}
                       </span>
                     </div>
 
                     <button
                       onClick={() => onViewDiagnostic(assessment)}
-                      className="inline-flex items-center justify-center w-full px-4 py-2.5 text-xs font-medium text-white bg-slate-900 hover:bg-slate-800 active:scale-[0.98] rounded-xl shadow-xs transition-all group cursor-pointer"
+                      className="inline-flex items-center justify-center w-full px-4 py-2.5 text-xs font-medium text-white bg-slate-900 hover:bg-slate-800 rounded-xl transition-all cursor-pointer"
                     >
                       <BarChart3 className="w-3.5 h-3.5 text-teal-400 mr-1.5" />
-                      <span>Lihat Diagnostik</span>
-                      <ArrowUpRight className="w-4 h-4 ml-1.5 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" strokeWidth={2} />
+                      <span>Lihat Hasil Pemahaman</span>
                     </button>
                   </div>
                 )}

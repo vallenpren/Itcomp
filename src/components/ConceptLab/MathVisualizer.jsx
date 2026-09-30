@@ -503,8 +503,8 @@ function MathVisualizerContent({
                 : 'bg-blue-600 hover:bg-blue-700 text-white border-blue-600'
             }`}
           >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>{autoDemo ? 'Stop Auto Demo 360°' : '🔄 Auto Demo Putar 360°'}</span>
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>{autoDemo ? 'Stop Auto Demo 360°' : 'Auto Demo Putar 360°'}</span>
           </button>
         </div>
 

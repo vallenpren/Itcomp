@@ -4,6 +4,7 @@ import {
   Tv, 
   Rocket, 
   Lightbulb, 
+  Users,
   FileText
 } from 'lucide-react';
 
@@ -16,8 +17,8 @@ export default function BottomBar({ currentView, onViewChange, currentUser }) {
     { id: 'history', label: 'Riwayat', icon: FileText },
   ] : [
     { id: 'teacher_dashboard', label: 'Menu Utama', icon: LayoutDashboard },
-    { id: 'quick_practice', label: 'Latihan', icon: Rocket },
     { id: 'teacher_cheat_sheet', label: 'Contekan', icon: Lightbulb },
+    { id: 'teacher_groups', label: 'Kelompok', icon: Users },
   ];
 
   return (

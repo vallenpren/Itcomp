@@ -283,7 +283,7 @@ export default function TeacherClassModeModal({
                         Simulasi Interaktif
                       </span>
                       <h4 className="text-sm font-extrabold text-slate-900 mt-1.5 group-hover:text-indigo-600">
-                        🚀 Laboratorium Visual
+                        Laboratorium Visual Interaktif
                       </h4>
                       <p className="text-xs text-slate-500 mt-1 leading-relaxed">
                         Tampilkan simulasi interaktif multi-mapel (Kalkulus, Fisika, Baterai) untuk demo visual.
@@ -311,7 +311,7 @@ export default function TeacherClassModeModal({
                         Presentasi Dokumen
                       </span>
                       <h4 className="text-sm font-extrabold text-slate-900 mt-1.5 group-hover:text-emerald-600">
-                        📑 Materi Saya (PPT/PDF)
+                        Materi Dokumen Saya (PPT/PDF)
                       </h4>
                       <p className="text-xs text-slate-500 mt-1 leading-relaxed">
                         Unggah slide presentasi guru agar bisa disimak langsung di HP siswa.

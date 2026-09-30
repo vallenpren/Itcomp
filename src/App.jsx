@@ -14,6 +14,7 @@ import ProjectorView from './components/ProjectorView';
 import StudentLiveView from './components/StudentLiveView';
 import QuickPracticeModal from './components/QuickPracticeModal';
 import TeacherCheatSheet from './components/TeacherCheatSheet';
+import TeacherClassroomGroups from './components/TeacherClassroomGroups';
 import LoginLoadingScreen from './components/LoginLoadingScreen';
 import { MOCK_USERS, MOCK_ASSESSMENTS } from './data/mockData';
 import { Sparkles, X } from 'lucide-react';
@@ -462,7 +463,7 @@ export default function App() {
             </div>
             <div>
               <span className="px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-[10px] font-black uppercase">
-                🚨 Latihan Baru Dimulai oleh Guru
+                Latihan Baru Dimulai oleh Guru
               </span>
               <h3 className="text-lg font-black text-slate-900 mt-2">
                 {incomingQuizAlert.quizTitle}
@@ -550,7 +551,12 @@ export default function App() {
           {currentView === 'teacher_cheat_sheet' && (
             <TeacherCheatSheet
               onOpenProjector={() => handleOpenProjector('success')}
+              onNavigateToGroups={() => setCurrentView('teacher_groups')}
             />
+          )}
+
+          {currentView === 'teacher_groups' && (
+            <TeacherClassroomGroups />
           )}
 
           {currentView === 'create_assessment' && (
@@ -655,7 +661,7 @@ export default function App() {
                             onClick={() => handleViewDiagnostic(assessmentsList[0])}
                             className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs shadow-xs transition-all active:scale-95 cursor-pointer"
                           >
-                            Lihat Diagnostik Saya 📊
+                            Lihat Hasil Pemahaman Saya
                           </button>
                         </div>
                       </div>

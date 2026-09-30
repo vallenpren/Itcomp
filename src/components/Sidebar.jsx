@@ -23,7 +23,8 @@ export default function Sidebar({ currentView, onViewChange, currentUser }) {
   const teacherNavItems = [
     { id: 'teacher_dashboard', label: 'Menu Utama Guru', icon: LayoutDashboard },
     { id: 'quick_practice', label: 'Mulai Latihan Siswa', icon: Rocket, badge: 'Praktis' },
-    { id: 'teacher_cheat_sheet', label: 'Contekan & Kelompok', icon: Lightbulb, badge: 'Kelompok' },
+    { id: 'teacher_cheat_sheet', label: 'Contekan Guru', icon: Lightbulb, badge: 'Panduan' },
+    { id: 'teacher_groups', label: 'Manajemen Kelompok', icon: Users, badge: 'Tim' },
     { id: 'history', label: 'Daftar Nilai Siswa', icon: FileText },
   ];
 

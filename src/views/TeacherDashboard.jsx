@@ -98,7 +98,7 @@ export default function TeacherDashboard({
                   <Monitor className="w-6 h-6" />
                 </div>
                 <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-xs font-black">
-                  ⚡ 1-Klik Siap Tayang
+                  1-Klik Siap Tayang
                 </span>
               </div>
 
@@ -115,7 +115,7 @@ export default function TeacherDashboard({
             {/* Tombol Aksi Bawah: Solid Royal Indigo (#2563EB) */}
             <button
               onClick={() => setIsClassModeModalOpen(true)}
-              className="w-full py-3.5 px-4 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white font-extrabold text-sm transition-all flex items-center justify-center gap-2 shadow-xs active:scale-98"
+              className="w-full py-3.5 px-4 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white font-extrabold text-sm transition-all flex items-center justify-center gap-2 shadow-xs active:scale-98 cursor-pointer"
             >
               <span>Buka Layar Kelas ↗</span>
             </button>
@@ -132,7 +132,7 @@ export default function TeacherDashboard({
                   <Send className="w-6 h-6" />
                 </div>
                 <span className="px-3 py-1 rounded-full bg-teal-50 text-teal-700 border border-teal-200 text-xs font-black">
-                  ⏱ 3 Langkah Mudah
+                  3 Langkah Mudah
                 </span>
               </div>
 
@@ -149,7 +149,7 @@ export default function TeacherDashboard({
             {/* Tombol Aksi Bawah: Solid Teal (#0D9488) */}
             <button
               onClick={() => setIsQuickModalOpen(true)}
-              className="w-full py-3.5 px-4 rounded-xl bg-[#0D9488] hover:bg-teal-700 text-white font-extrabold text-sm transition-all flex items-center justify-center gap-2 shadow-xs active:scale-98"
+              className="w-full py-3.5 px-4 rounded-xl bg-[#0D9488] hover:bg-teal-700 text-white font-extrabold text-sm transition-all flex items-center justify-center gap-2 shadow-xs active:scale-98 cursor-pointer"
             >
               <span>Bagikan Latihan ↗</span>
             </button>
@@ -166,7 +166,7 @@ export default function TeacherDashboard({
                   <Compass className="w-6 h-6" />
                 </div>
                 <span className="px-3 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-xs font-black">
-                  💡 Panduan Tatap Muka
+                  Panduan Tatap Muka
                 </span>
               </div>
 
@@ -183,7 +183,7 @@ export default function TeacherDashboard({
             {/* Tombol Aksi Bawah: Solid Slate-800 (#1E293B) */}
             <button
               onClick={onOpenCheatSheet}
-              className="w-full py-3.5 px-4 rounded-xl bg-[#1E293B] hover:bg-slate-900 text-white font-extrabold text-sm transition-all flex items-center justify-center gap-2 shadow-xs active:scale-98"
+              className="w-full py-3.5 px-4 rounded-xl bg-[#1E293B] hover:bg-slate-900 text-white font-extrabold text-sm transition-all flex items-center justify-center gap-2 shadow-xs active:scale-98 cursor-pointer"
             >
               <span>Lihat Panduan Kelas ↗</span>
             </button>
@@ -204,16 +204,18 @@ export default function TeacherDashboard({
 
           <button
             onClick={onStartCreateAssessment}
-            className="px-6 py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-sm sm:text-base transition-all shadow-md flex items-center justify-center gap-2 active:scale-98 self-start sm:self-auto"
+            className="px-6 py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-sm sm:text-base transition-all shadow-md flex items-center justify-center gap-2 active:scale-98 self-start sm:self-auto cursor-pointer"
           >
             <PlusCircle className="w-5 h-5 stroke-[2.5]" />
             <span>+ Buat Ujian Custom</span>
           </button>
         </div>
 
-        {/* LIST KARTU ASESMEN */}
+        {/* LIST KARTU ASESMEN WITH FALLBACK GUARD */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {filteredAssessments.map((asm) => (
+          {(filteredAssessments || []).map((asm) => {
+            if (!asm) return null;
+            return (
             <div
               key={asm.id}
               className="p-6 rounded-3xl bg-slate-50/80 border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all flex flex-col justify-between space-y-4"
@@ -256,7 +258,8 @@ export default function TeacherDashboard({
                 </button>
               </div>
             </div>
-          ))}
+          );
+        })}
         </div>
 
       </div>
