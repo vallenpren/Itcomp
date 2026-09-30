@@ -8,33 +8,34 @@ import {
   Users,
   Target
 } from 'lucide-react';
+import { SidebarRocketIllustration } from './VectorIllustrations';
 
 export default function Sidebar({ currentView, onViewChange, currentUser }) {
   const isStudent = currentUser.role === 'student';
 
   const studentNavItems = [
     { id: 'dashboard', label: 'Asesmen Saya', icon: LayoutDashboard },
-    { id: 'student_live', label: 'Simak Presentasi', icon: Tv, badge: '🔴 Live' },
-    { id: 'sandbox', label: 'Lab Konsep Nyata', icon: Rocket, badge: 'Interaktif' },
+    { id: 'student_live', label: 'Simak Presentasi', icon: Tv },
+    { id: 'sandbox', label: 'Lab Konsep Nyata', icon: Rocket },
     { id: 'history', label: 'Riwayat & Hasil', icon: FileText },
-    { id: 'diagnostic', label: 'Diagnostik Pintar', icon: Target, badge: 'Analisis' },
+    { id: 'diagnostic', label: 'Diagnostik Pintar', icon: Target },
   ];
 
   const teacherNavItems = [
     { id: 'teacher_dashboard', label: 'Menu Utama Guru', icon: LayoutDashboard },
-    { id: 'quick_practice', label: 'Mulai Latihan Siswa', icon: Rocket, badge: 'Praktis' },
-    { id: 'teacher_cheat_sheet', label: 'Contekan Guru', icon: Lightbulb, badge: 'Panduan' },
-    { id: 'teacher_groups', label: 'Manajemen Kelompok', icon: Users, badge: 'Tim' },
+    { id: 'quick_practice', label: 'Mulai Latihan Siswa', icon: Rocket },
+    { id: 'teacher_cheat_sheet', label: 'Contekan Guru', icon: Lightbulb },
+    { id: 'teacher_groups', label: 'Manajemen Kelompok', icon: Users },
     { id: 'history', label: 'Daftar Nilai Siswa', icon: FileText },
   ];
 
   const navItems = isStudent ? studentNavItems : teacherNavItems;
 
   return (
-    <aside className="hidden md:flex flex-col w-64 bg-white border border-slate-200/80 p-4 shrink-0 rounded-2xl h-fit sticky top-20 shadow-xs space-y-4 font-sans">
+    <aside className="hidden md:flex flex-col w-64 bg-white border border-slate-200/80 p-4 shrink-0 rounded-3xl h-fit sticky top-20 shadow-xs space-y-4 font-sans">
       
       {/* User Role Card */}
-      <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/60">
+      <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/60">
         <div className="flex items-center gap-2 mb-1">
           <div className={`w-2.5 h-2.5 rounded-full ${isStudent ? 'bg-blue-600' : 'bg-emerald-600'}`}></div>
           <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
@@ -59,26 +60,28 @@ export default function Sidebar({ currentView, onViewChange, currentUser }) {
             <button
               key={item.id}
               onClick={() => onViewChange(item.id)}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 active:scale-98 ${
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm transition-all duration-150 active:scale-98 cursor-pointer ${
                 isActive
-                  ? 'bg-blue-600 text-white shadow-sm font-extrabold'
-                  : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
+                  ? 'bg-blue-50 text-blue-600 font-semibold'
+                  : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50 font-medium'
               }`}
             >
-              <div className="flex items-center gap-3">
-                <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-500'}`} />
-                <span>{item.label}</span>
-              </div>
-              {item.badge && (
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
-                  isActive ? 'bg-white/20 text-white' : 'bg-blue-50 text-blue-700 border border-blue-200/60'
-                }`}>
-                  {item.badge}
-                </span>
-              )}
+              <Icon className={`w-4 h-4 stroke-[1.75] ${isActive ? 'text-blue-600' : 'text-slate-500'}`} />
+              <span>{item.label}</span>
             </button>
           );
         })}
+      </div>
+
+      {/* Motivation Widget with Mini Vector Rocket */}
+      <div className="bg-blue-50/70 border border-blue-150 rounded-2xl p-3.5 text-center relative overflow-hidden mt-4">
+        <SidebarRocketIllustration className="w-16 h-16 mx-auto mb-2 object-contain" />
+        <h4 className="text-xs font-extrabold text-blue-900 leading-tight">
+          Belajar Sains Jadi Mudah!
+        </h4>
+        <p className="text-[10px] text-blue-600 font-medium mt-0.5">
+          Mode Luring Aktif Tanpa Kuota
+        </p>
       </div>
 
       {/* Footer Info */}

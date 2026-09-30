@@ -23,6 +23,7 @@ import {
 import confetti from 'canvas-confetti';
 import RadarChart from '../components/RadarChart';
 import { COMPETENCY_PILLARS, MOCK_QUESTIONS, SMART_DIAGNOSTICS_DB } from '../data/mockData';
+import { TrophyBadgeIllustration } from '../components/VectorIllustrations';
 
 export default function DiagnosticView({ testResult, assessment, onBackToDashboard, onRetakeTest, onOpenSandbox }) {
   const [expandedQuestion, setExpandedQuestion] = useState(null);
@@ -73,13 +74,13 @@ export default function DiagnosticView({ testResult, assessment, onBackToDashboa
   }
 
   return (
-    <div className="space-y-6 pb-20 md:pb-8 max-w-6xl mx-auto">
+    <div className="space-y-6 pb-20 md:pb-8 max-w-6xl mx-auto font-sans">
       
       {/* Top Header Navigation */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <button
           onClick={onBackToDashboard}
-          className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-blue-600 transition-colors bg-white px-3.5 py-2 rounded-xl border border-slate-200 shadow-xs self-start"
+          className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-blue-600 transition-colors bg-white px-3.5 py-2 rounded-xl border border-slate-200 shadow-xs self-start cursor-pointer active:scale-95"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Kembali ke Asesmen Saya</span>
@@ -88,7 +89,7 @@ export default function DiagnosticView({ testResult, assessment, onBackToDashboa
         <div className="flex items-center gap-2">
           <button
             onClick={onRetakeTest}
-            className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors border border-slate-200 flex items-center gap-1.5"
+            className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors border border-slate-200 flex items-center gap-1.5 cursor-pointer active:scale-95"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Coba Ulang Ujian</span>
@@ -106,10 +107,12 @@ export default function DiagnosticView({ testResult, assessment, onBackToDashboa
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
           
-          {/* Score Circle & Pass Badge */}
-          <div className="md:col-span-5 flex flex-col items-center justify-center p-6 rounded-2xl bg-gradient-to-b from-slate-50 to-blue-50/30 border border-slate-200/80 text-center">
+          {/* Score Circle & Pass Badge with Vector Trophy */}
+          <div className="md:col-span-5 flex flex-col items-center justify-center p-6 rounded-2xl bg-gradient-to-b from-slate-50 to-blue-50/30 border border-slate-200/80 text-center relative">
             
-            <span className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-2">
+            <TrophyBadgeIllustration className="w-20 h-20 mb-1 object-contain drop-shadow-sm" />
+
+            <span className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-1">
               Hasil Diagnostik Akhir
             </span>
 

@@ -5,12 +5,15 @@ import {
   CheckCircle2, 
   AlertCircle, 
   BarChart3, 
+  BarChart2,
   BookOpen, 
   Award, 
   Search, 
   TrendingUp, 
-  Tv, 
+  Radio, 
+  Cast,
   Users, 
+  User,
   Download, 
   FileText, 
   UserCheck, 
@@ -19,6 +22,8 @@ import {
 } from 'lucide-react';
 import { MOCK_ASSESSMENTS } from '../data/mockData';
 import { INITIAL_GROUP_MODULES } from '../components/TeacherClassroomGroups';
+import { StudentHeroIllustration, ModuleReadyIllustration } from '../components/VectorIllustrations';
+import studentHeroImg from '../assets/student-hero.jpg';
 
 export default function StudentDashboard({ 
   currentUser, 
@@ -138,97 +143,95 @@ export default function StudentDashboard({
 
       {/* SIARAN LIVE GURU BANNER */}
       {isLiveSession && (
-        <div className="mb-6 p-5 bg-blue-50 border-2 border-blue-400/50 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
+        <div className="mb-6 bg-white border border-blue-200 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
           <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0">
-              <Tv className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
+              <Radio className="w-5 h-5 text-blue-600 animate-pulse" strokeWidth={1.75} />
             </div>
             <div>
               <div className="flex items-center gap-2 mb-0.5">
-                <span className="px-2.5 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-wider">
+                <span className="px-2.5 py-0.5 rounded-full bg-blue-600 text-white text-[10px] font-bold uppercase tracking-wider">
                   Siaran Guru Aktif
                 </span>
-                <span className="text-xs font-bold text-blue-900 bg-white px-2 py-0.5 rounded border border-blue-200">
+                <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
                   {sessionTargetClass.name}
                 </span>
               </div>
-              <h4 className="text-sm font-extrabold text-slate-900">
+              <h4 className="text-sm font-semibold text-slate-900">
                 Pak Budi Hartono Sedang Mempresentasikan Materi Live
               </h4>
             </div>
           </div>
           <button 
             onClick={onJoinLiveSession}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs cursor-pointer shrink-0"
+            className="h-10 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95 cursor-pointer shrink-0 w-full sm:w-auto"
           >
-            <Tv className="w-4 h-4" />
+            <Cast className="w-4 h-4 stroke-[1.75]" />
             <span>Simak Presentasi Proyektor</span>
           </button>
         </div>
       )}
       
-      {/* BANNER SISWA HUMAN-CENTERED */}
-      <div className="relative overflow-hidden rounded-3xl bg-slate-900 p-6 sm:p-8 text-white shadow-xl space-y-5 border border-slate-800">
+      {/* BANNER UTAMA SISWA ELEGAN & CLEAN */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 p-6 md:p-8 text-white shadow-lg border border-blue-500/20">
+        {/* Efek Cahaya Halus di Latar Belakang */}
+        <div className="absolute -right-10 -bottom-10 w-72 h-72 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+
         <div className="relative z-10 space-y-4">
-          
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <span className="px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30 text-xs font-bold flex items-center gap-1.5">
-              <UserCheck className="w-3.5 h-3.5" />
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-white/15 border border-white/20 backdrop-blur-sm">
+              <User className="w-3.5 h-3.5"/>
               Siswa: {currentUser?.name || 'Ahmad Dani'} ({currentUser?.class || 'XII MIPA 1'})
             </span>
-
-            <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[11px] font-bold">
+            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-400/20 text-emerald-200 border border-emerald-400/30">
               Status Pengelompokan Aktif
             </span>
           </div>
 
           <div>
-            <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-              Ayo pelajari konsep materi hari ini lewat simulasi seru dan lihat perkembangan belajarmu!
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold leading-snug">
+              Halo, {currentUser?.name || 'Ahmad Dani'}! Ayo pelajari konsep materi hari ini lewat simulasi seru!
             </h1>
-            <p className="mt-1.5 text-xs text-blue-200 font-semibold">
+            <p className="mt-1.5 text-blue-100 text-xs sm:text-sm font-medium">
               Kelompok Belajar: {activeModuleForStudent.groupName} (Fokus Cara Belajar: {getApproachLabel(assignedGroupKey)})
             </p>
           </div>
 
-          {/* CATATAN SINGKAT KELOMPOK */}
-          <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 space-y-1.5 text-xs">
-            <div className="flex items-center gap-2 text-blue-300 font-bold">
-              <Users className="w-4 h-4 text-blue-400" />
-              <span>Informasi Kelompok Belajar:</span>
-            </div>
-            <p className="text-[11px] text-slate-200 leading-relaxed font-normal">
-              Kelompok ini adalah wadah diskusi cara belajar. Materi pokok sama dengan teman sekelas lainnya, namun modul ajar Anda disajikan lewat panduan visual. Asesmen dan kuis tetap dikerjakan mandiri.
+          {/* Kotak Info Kelompok */}
+          <div className="p-4 rounded-2xl bg-white/10 border border-white/15 backdrop-blur-sm text-xs sm:text-sm text-blue-50 leading-relaxed">
+            <p className="font-semibold text-white mb-1 flex items-center gap-1.5">
+              <Users className="w-4 h-4 text-blue-200"/>
+              Informasi Kelompok Belajar:
             </p>
+            Kelompok ini adalah wadah diskusi cara belajar. Materi pokok sama dengan teman sekelas lainnya, namun modul ajar disajikan lewat panduan visual. Asesmen dan kuis tetap dikerjakan mandiri.
           </div>
 
-          <div className="pt-1 flex flex-wrap gap-3">
-            <button
+          {/* Tombol Aksi */}
+          <div className="flex flex-wrap items-center gap-3 pt-1">
+            <button 
               onClick={() => onStartTest(safeAssessments[0])}
-              className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs transition-all shadow-xs flex items-center gap-2 cursor-pointer active:scale-95"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-blue-700 font-semibold text-sm hover:bg-blue-50 active:scale-95 shadow-sm transition-all cursor-pointer"
             >
-              <Play className="w-3.5 h-3.5 fill-white" />
-              <span>Mulai Latihan Mandiri</span>
+              <Play className="w-4 h-4 fill-blue-700"/>
+              Mulai Latihan Mandiri
             </button>
-
-            <button
+            <button 
               onClick={() => onViewDiagnostic(completedAssessments[0] || safeAssessments[0])}
-              className="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium text-xs transition-all border border-white/30 flex items-center gap-2 cursor-pointer active:scale-95"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-medium text-sm active:scale-95 transition-all cursor-pointer"
             >
-              <BarChart3 className="w-3.5 h-3.5 text-white/90" />
-              <span>Lihat Hasil Pemahaman</span>
+              <BarChart2 className="w-4 h-4"/>
+              Lihat Hasil Pemahaman
             </button>
           </div>
-
         </div>
       </div>
 
-      {/* KARTU MODUL BELAJAR SISWA (DISTRIBUSI TERFILTER & UNDUH MODUL) */}
-      <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-4">
+      {/* KARTU MODUL BELAJAR SISWA */}
+      <div className="p-6 rounded-3xl bg-white border border-slate-200/80 shadow-xs space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-slate-100">
           <div>
-            <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-blue-600" />
+            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <BookOpen className="w-5 h-5 text-slate-700 stroke-[1.75]" />
               <span>Modul Belajar Sesuai Gaya Belajar Siswa</span>
             </h3>
             <p className="text-xs text-slate-500 font-medium mt-0.5">
@@ -237,11 +240,11 @@ export default function StudentDashboard({
           </div>
 
           {/* Group Switcher Preview */}
-          <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl text-xs font-bold shrink-0">
+          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-semibold shrink-0">
             <button
               onClick={() => setAssignedGroupKey('GROUP_A')}
               className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                assignedGroupKey === 'GROUP_A' ? 'bg-white text-blue-700 shadow-xs font-black' : 'text-slate-600'
+                assignedGroupKey === 'GROUP_A' ? 'bg-white text-blue-700 shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               Kelompok A (Visual)
@@ -249,7 +252,7 @@ export default function StudentDashboard({
             <button
               onClick={() => setAssignedGroupKey('GROUP_B')}
               className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                assignedGroupKey === 'GROUP_B' ? 'bg-white text-purple-700 shadow-xs font-black' : 'text-slate-600'
+                assignedGroupKey === 'GROUP_B' ? 'bg-white text-purple-700 shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               Kelompok B (Teori)
@@ -257,7 +260,7 @@ export default function StudentDashboard({
             <button
               onClick={() => setAssignedGroupKey('GROUP_C')}
               className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                assignedGroupKey === 'GROUP_C' ? 'bg-white text-teal-700 shadow-xs font-black' : 'text-slate-600'
+                assignedGroupKey === 'GROUP_C' ? 'bg-white text-teal-700 shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               Kelompok C (Praktik)
@@ -265,31 +268,44 @@ export default function StudentDashboard({
           </div>
         </div>
 
-        {/* MAIN FILTERED MODULE CARD */}
-        <div className="p-5 sm:p-6 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        {/* Friendly Ready State Banner */}
+        <div className="bg-sky-50/60 border border-sky-150 rounded-2xl p-4 flex items-center gap-4 text-xs">
+          <ModuleReadyIllustration className="w-24 h-24 shrink-0 opacity-90 object-contain hidden sm:block" />
+          <div className="space-y-1">
+            <h4 className="font-bold text-sky-900 text-sm">
+              Semua modul untuk kelompok belajarmu sudah siap dipelajari!
+            </h4>
+            <p className="text-sky-700 font-medium leading-relaxed">
+              Materi ini disesuaikan dengan pendekatan pilihanmu ({getApproachLabel(assignedGroupKey)}). Klik tombol unduh di bawah ini untuk memulai membaca.
+            </p>
+          </div>
+        </div>
+
+        {/* MAIN BALANCED MODULE CARD */}
+        <div className="bg-slate-50/70 border border-slate-200/80 hover:border-blue-200 rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-all">
           {/* Left Side */}
           <div className="space-y-2 max-w-2xl">
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-md bg-blue-100 text-blue-800 text-[10px] font-black uppercase">
+              <span className="bg-blue-100 text-blue-700 text-xs px-2.5 py-1 rounded-md font-semibold">
                 {activeModuleForStudent.groupName} • Fokus Cara Belajar: {getApproachLabel(assignedGroupKey)}
               </span>
-              <span className="text-[11px] text-slate-400 font-semibold">
+              <span className="text-xs text-slate-400 font-medium">
                 Terbit: {activeModuleForStudent.uploadDate}
               </span>
             </div>
 
-            <h4 className="text-lg font-extrabold text-slate-900">
+            <h4 className="text-base font-semibold text-slate-900">
               {activeModuleForStudent.activeModuleTitle}
             </h4>
 
-            <p className="text-xs text-slate-600 leading-relaxed font-medium">
+            <p className="text-xs text-slate-600 leading-relaxed font-normal">
               {activeModuleForStudent.description}
             </p>
 
-            <div className="pt-1 flex items-center gap-3 text-xs text-slate-500 font-bold">
-              <span className="flex items-center gap-1">
-                <FileText className="w-4 h-4 text-blue-600" />
-                {activeModuleForStudent.fileName}
+            <div className="pt-1 flex items-center gap-3 text-xs text-slate-500 font-medium">
+              <span className="flex items-center gap-1.5">
+                <FileText className="w-4 h-4 text-slate-400 stroke-[1.75]" />
+                <span>{activeModuleForStudent.fileName}</span>
               </span>
               <span>•</span>
               <span>Ukuran: {activeModuleForStudent.fileSize || '2.4 MB'}</span>
@@ -300,9 +316,9 @@ export default function StudentDashboard({
           <div className="shrink-0 w-full md:w-auto">
             <button
               onClick={handleDownloadModule}
-              className="w-full md:w-auto px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+              className="h-10 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer active:scale-95 w-full md:w-auto"
             >
-              <Download className="w-4 h-4" />
+              <Download className="w-4 h-4 stroke-[1.75]" />
               <span>Unduh Modul (PDF)</span>
             </button>
           </div>
